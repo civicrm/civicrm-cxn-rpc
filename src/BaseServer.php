@@ -18,6 +18,9 @@ abstract class BaseServer {
   public function __construct(CaIdentity $caIdentity, AgentIdentity $myIdentity) {
     $this->caIdentity = $caIdentity;
     $this->myIdentity = $myIdentity;
+    if ($this->getMyExpectedCertUsage() != $this->myIdentity->getUsage()) {
+      throw new Exception\InvalidUsageException("Cannot setup server. My certificate must have usage flag: " . $this->getMyExpectedCertUsage());
+    }
   }
 
   /**

@@ -42,7 +42,7 @@ class AgentIdentity extends BaseIdentity {
     $usage = $x509->getExtension('id-ce-extKeyUsage');
 
     if (count($usage) != 1) {
-      throw new InvalidUsageException("Certificate includes too many authorized uses.");
+      throw new Exception\InvalidUsageException("Certificate must include exactly one authorized usage.");
     }
 
     if ($expectUsage !== $usage[0]) {
@@ -105,7 +105,16 @@ class AgentIdentity extends BaseIdentity {
    *   TRUE if valid.
    */
   protected static function validateCallbackUrl($url) {
-    return !empty($url) && filter_var($url, FILTER_VALIDATE_URL) !== FALSE;
+    if (empty($url)) {
+      return FALSE;
+    }
+    if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
+      return FALSE;
+    }
+    if (!preg_match('/^(http|https):/', $url)) {
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /**

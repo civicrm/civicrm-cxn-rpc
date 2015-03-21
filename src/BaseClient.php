@@ -1,8 +1,9 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-abstract class BaseClient {
+use Civi\Cxn\Rpc\Exception\InvalidUsageException;
 
+abstract class BaseClient {
 
   /**
    * @var BaseIdentity
@@ -23,6 +24,13 @@ abstract class BaseClient {
     $this->caIdentity = $caIdentity;
     $this->myIdentity = $myIdentity;
     $this->remoteIdentity = $remoteIdentity;
+
+    if ($this->getMyExpectedCertUsage() != $this->myIdentity->getUsage()) {
+      throw new InvalidUsageException("Cannot setup client. My certificate must have usage flag: " . $this->getMyExpectedCertUsage());
+    }
+    if ($this->getExpectedRemoteUsage() != $this->remoteIdentity->getUsage()) {
+      throw new InvalidUsageException("Cannot setup client. Remote certificate must have usage flag: " . $this->getExpectedRemoteUsage());
+    }
   }
 
   /**
@@ -33,7 +41,13 @@ abstract class BaseClient {
    *   Serialized request.
    */
   public function createRequest($entity, $action, $params) {
-    $payload = json_encode(array($this->myIdentity->getCert(), Time::getTime() + Constants::REQUEST_TTL, $entity, $action, $params));
+    $payload = json_encode(array(
+        $this->myIdentity->getCert(),
+        Time::getTime() + Constants::REQUEST_TTL,
+        $entity,
+        $action,
+        $params
+      ));
     // FIXME encrypt $payload with $myPrivate and $remotePublic
     return $payload;
   }
@@ -59,8 +73,11 @@ abstract class BaseClient {
    */
   public function sendRequest($entity, $action, $params) {
     $request = $this->createRequest($entity, $action, $params);
-    throw new \RuntimeException("TODO: Connect to " . $this->getRemoteUrl());
-    // return $this->parseResponse($response);
+    if (TRUE) {
+      throw new \RuntimeException("TODO: Connect to " . $this->getRemoteUrl());
+    }
+    $response = '';
+    return $this->parseResponse($response);
   }
 
   /**

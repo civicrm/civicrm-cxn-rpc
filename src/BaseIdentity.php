@@ -11,6 +11,11 @@ abstract class BaseIdentity {
   protected $cert;
 
   /**
+   * @var \File_X509|NULL
+   */
+  protected $certX509;
+
+  /**
    * @var array
    */
   protected $keypair;
@@ -45,6 +50,32 @@ abstract class BaseIdentity {
    */
   public function getCert() {
     return $this->cert;
+  }
+
+  /**
+   * @return \File_X509|NULL
+   */
+  public function getCertAsX509() {
+    if (empty($this->cert)) {
+      return NULL;
+    }
+    if (!$this->certX509) {
+      $this->certX509 = new \File_X509();
+      $this->certX509->loadX509($this->cert);
+    }
+    return $this->certX509;
+  }
+
+  /**
+   * @return string
+   * @throws Exception\InvalidUsageException
+   */
+  public function getUsage() {
+    $usage = $this->getCertAsX509()->getExtension('id-ce-extKeyUsage');
+    if (count($usage) != 1) {
+      throw new Exception\InvalidUsageException("Certificate must include exactly one authorized usage.");
+    }
+    return $usage[0];
   }
 
   /**
