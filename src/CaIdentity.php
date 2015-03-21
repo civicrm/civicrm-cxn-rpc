@@ -61,7 +61,7 @@ class CaIdentity extends BaseIdentity {
     $issuer->setPrivateKey($privKey);
 
     $x509 = new \File_X509();
-    $x509->setEndDate(self::AGENT_DURATION);
+    $x509->setEndDate(date('c', strtotime(self::AGENT_DURATION, Time::getTime())));
 
     $result = $x509->sign($issuer, $subject);
     return $x509->saveX509($result);

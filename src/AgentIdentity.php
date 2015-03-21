@@ -2,8 +2,11 @@
 namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\IdentityException;
-use Civi\Cxn\Rpc\Exception\InvalidDnException;
+use Civi\Cxn\Rpc\Exception\InvalidCertException;
+use Civi\Cxn\Rpc\Exception\InvalidDnIdException;
+use Civi\Cxn\Rpc\Exception\InvalidDnUrlException;
 use Civi\Cxn\Rpc\Exception\InvalidUsageException;
+use Civi\Cxn\Rpc\Exception\ExpiredCertException;
 
 class AgentIdentity extends BaseIdentity {
 
@@ -31,22 +34,16 @@ class AgentIdentity extends BaseIdentity {
   /**
    * @param string $cert
    *   Serialized certificate.
-   * @param string $expectUsage
-   *   The extended X.509 usage which is expected.
    * @return AppIdentity|SiteIdentity
    * @throws IdentityException
    */
-  public static function load($cert, $expectUsage) {
+  public static function load($cert) {
     $x509 = new \File_X509();
     $x509->loadX509($cert);
     $usage = $x509->getExtension('id-ce-extKeyUsage');
 
     if (count($usage) != 1) {
-      throw new Exception\InvalidUsageException("Certificate must include exactly one authorized usage.");
-    }
-
-    if ($expectUsage !== $usage[0]) {
-      throw new InvalidUsageException("Certificate presents incorrect usage. Expected: $expectUsage");
+      throw new InvalidUsageException("Certificate must include exactly one authorized usage.");
     }
 
     switch ($usage[0]) {
@@ -63,6 +60,8 @@ class AgentIdentity extends BaseIdentity {
     }
     list($identity->callbackUrl) = $x509->getDNProp('commonName');
     list($identity->agentId) = $x509->getDNProp('id-at-organizationName');
+    $identity->cert = $cert;
+    $identity->certX509 = $x509;
 
     return $identity;
   }
@@ -83,17 +82,26 @@ class AgentIdentity extends BaseIdentity {
 
   /**
    * @param CaIdentity $ca
-   * @throws InvalidDnException
+   * @throws IdentityException
    * @return static
    */
   public function validate(CaIdentity $ca) {
     if (!self::validateCallbackUrl($this->callbackUrl)) {
-      throw new InvalidDnException("Identity is invalid. Expected DN: CN={url},O={id}. Malformed URL.");
+      throw new InvalidDnUrlException("Identity is invalid. Expected DN: CN={url},O={id}. Malformed URL.");
     }
     if (!self::validateAgentId($this->agentId)) {
-      throw new InvalidDnException("Identity is invalid. Expected DN: CN={url},O={id}. Malformed ID.");
+      throw new InvalidDnIdException("Identity is invalid. Expected DN: CN={url},O={id}. Malformed ID.");
     }
-    // FIXME validate against $caIdentity and expiration date
+
+    $x509 = new \File_X509();
+    $x509->loadCA($ca->getCert());
+    $x509->loadX509($this->getCert());
+    if (!$x509->validateSignature()) {
+      throw new InvalidCertException("Identity is invalid. Certificate is not signed by proper CA.");
+    }
+    if (!$x509->validateDate(Time::getTime())) {
+      throw new ExpiredCertException("Identity is invalid. Certificate expired.");
+    }
     return $this;
   }
 

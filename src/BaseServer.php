@@ -3,6 +3,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\IdentityException;
 use Civi\Cxn\Rpc\Exception\InvalidRequestException;
+use Civi\Cxn\Rpc\Exception\InvalidUsageException;
 
 abstract class BaseServer implements ServerInterface {
 
@@ -37,7 +38,11 @@ abstract class BaseServer implements ServerInterface {
     if (Time::getTime() > $expires) {
       throw new InvalidRequestException("Invalid request: expired");
     }
-    $remoteIdentity = AgentIdentity::load($remoteCert, $this->getExpectedRemoteUsage());
+    $remoteIdentity = AgentIdentity::load($remoteCert);
+    if ($this->getExpectedRemoteUsage() !== $remoteIdentity->getUsage()) {
+      throw new InvalidUsageException("Certificate presents incorrect usage. Expected: " . $this->getExpectedRemoteUsage());
+    }
+
     $remoteIdentity->validate($this->caIdentity);
     return array($remoteIdentity, $entity, $action, $params);
   }

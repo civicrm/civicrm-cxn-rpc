@@ -20,10 +20,17 @@ abstract class BaseClient implements ClientInterface {
    */
   protected $remoteIdentity;
 
-  public function __construct($caIdentity, $myIdentity, $remoteIdentity) {
+  /**
+   * @var bool
+   */
+  protected $enableValidation;
+
+
+  public function __construct($caIdentity, $myIdentity, $remoteIdentity, $enableValidation = TRUE) {
     $this->caIdentity = $caIdentity;
     $this->myIdentity = $myIdentity;
     $this->remoteIdentity = $remoteIdentity;
+    $this->enableValidation = $enableValidation;
 
     if ($this->getMyExpectedCertUsage() != $this->myIdentity->getUsage()) {
       throw new InvalidUsageException("Cannot setup client. My certificate must have usage flag: " . $this->getMyExpectedCertUsage());
@@ -45,12 +52,15 @@ abstract class BaseClient implements ClientInterface {
    */
   public function createRequest($entity, $action, $params) {
     $payload = json_encode(array(
-        $this->myIdentity->getCert(),
-        Time::getTime() + Constants::REQUEST_TTL,
-        $entity,
-        $action,
-        $params,
-      ));
+      $this->myIdentity->getCert(),
+      Time::getTime() + Constants::REQUEST_TTL,
+      $entity,
+      $action,
+      $params,
+    ));
+    if ($this->getEnableValidation()) {
+      $this->remoteIdentity->validate($this->caIdentity);
+    }
     // FIXME encrypt $payload with $myPrivate and $remotePublic
     return $payload;
   }
@@ -98,4 +108,18 @@ abstract class BaseClient implements ClientInterface {
    */
   abstract protected function getExpectedRemoteUsage();
 
+
+  /**
+   * @return boolean
+   */
+  public function getEnableValidation() {
+    return $this->enableValidation;
+  }
+
+  /**
+   * @param boolean $enableValidation
+   */
+  public function setEnableValidation($enableValidation) {
+    $this->enableValidation = $enableValidation;
+  }
 }
