@@ -185,6 +185,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
    * @throws \Exception
    */
   public function testRoundtrip($client, $expectCreateRequestException, $expectTo, $server, $expectParseRequestException, $expectFrom) {
+    $test = $this;
+
     // Client prepares request
     try {
       $reqCiphertext = $client->createRequest('entity-1', 'action-1', array(
@@ -202,9 +204,21 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $this->assertTrue(is_string($reqCiphertext));
     $this->assertEquals($expectTo, array('url' => $client->getRemoteUrl()));
 
-    // Server receives request
+    // Server receives request and prepares response
     try {
-      list ($parsedIdentity, $parsedEntity, $parsedAction, $parsedParams) = $server->parseRequest($reqCiphertext);
+      $respCiphertext = $server->handle($reqCiphertext, function ($identity, $entity, $action, $params) use ($expectParseRequestException, $expectFrom, $test) {
+
+        $test->assertEquals(NULL, $expectParseRequestException);
+        $test->assertEquals($expectFrom, array(
+          'url' => $identity->getCallbackUrl(),
+          'id' => $identity->getAgentId(),
+        ));
+        $test->assertEquals('entity-1', $entity);
+        $test->assertEquals('action-1', $action);
+        $test->assertEquals(array('foo' => 'bar'), $params);
+
+        return array('field' => 'value-123');
+      });
     }
     catch (\Exception $e) {
       if (empty($expectParseRequestException)) {
@@ -213,17 +227,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       $this->assertInstanceOf($expectParseRequestException, $e);
       return;
     }
-    $this->assertEquals(NULL, $expectParseRequestException);
-    $this->assertEquals($expectFrom, array(
-      'url' => $parsedIdentity->getCallbackUrl(),
-      'id' => $parsedIdentity->getAgentId(),
-    ));
-    $this->assertEquals('entity-1', $parsedEntity);
-    $this->assertEquals('action-1', $parsedAction);
-    $this->assertEquals(array('foo' => 'bar'), $parsedParams);
 
     // Server sends response
-    $respCiphertext = $server->createResponse(array('field' => 'value-123'), $parsedIdentity);
     $this->assertTrue(is_string($respCiphertext));
 
     // client receives response

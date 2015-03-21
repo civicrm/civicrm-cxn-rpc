@@ -3,7 +3,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\InvalidUsageException;
 
-abstract class BaseClient {
+abstract class BaseClient implements ClientInterface {
 
   /**
    * @var BaseIdentity
@@ -35,8 +35,11 @@ abstract class BaseClient {
 
   /**
    * @param string $entity
+   *   Entity name.
    * @param string $action
+   *   Action name.
    * @param array $params
+   *   Array-tree parameters.
    * @return string
    *   Serialized request.
    */
@@ -46,7 +49,7 @@ abstract class BaseClient {
         Time::getTime() + Constants::REQUEST_TTL,
         $entity,
         $action,
-        $params
+        $params,
       ));
     // FIXME encrypt $payload with $myPrivate and $remotePublic
     return $payload;
@@ -66,8 +69,11 @@ abstract class BaseClient {
 
   /**
    * @param string $entity
+   *   Entity name.
    * @param string $action
+   *   Action name.
    * @param array $params
+   *   Array-tree parameters.
    * @return array
    *   Response.
    */
