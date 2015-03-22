@@ -58,11 +58,15 @@ abstract class BaseClient extends Agent implements ClientInterface {
    *   Response.
    */
   public function sendRequest($data) {
-    $request = $this->createRequest($data);
-    if (TRUE) {
-      throw new \RuntimeException("TODO: Connect to " . $this->getRemoteUrl());
-    }
-    $respCiphertext = '';
+    $opts = array(
+      'http' => array(
+        'method' => 'POST',
+        'header' => 'Content-type: application/x-civi-cxn',
+        'content' => $this->createRequest($data),
+      ),
+    );
+    $context = stream_context_create($opts);
+    $respCiphertext = file_get_contents($this->getRemoteUrl(), FALSE, $context);
     list ($remoteIdentity, $respData) = $this->parseResponse($respCiphertext);
     return $respData;
   }
