@@ -5,7 +5,7 @@ namespace Civi\Cxn\Rpc;
  * Class AppServer
  *
  * The AppServer parses incoming requests on behalf of an application. For example,
- * the SiteClient for SaveTheWhales.org connects to the AppServer to AddressCleanup.com
+ * the AppClient for SaveTheWhales.org connects to the AppServer to AddressCleanup.com
  *
  * @package Civi\Cxn\Rpc
  */

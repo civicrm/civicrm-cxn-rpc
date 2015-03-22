@@ -5,7 +5,7 @@ namespace Civi\Cxn\Rpc;
  * Class SiteServer
  *
  * The SiteServer parses incoming requests on behalf of an end-user organization. For example,
- * the AppClient for AddressCleanup.com connects to the SiteServer for SaveTheWhales.org.
+ * the SiteClient for AddressCleanup.com connects to the SiteServer for SaveTheWhales.org.
  *
  * @package Civi\Cxn\Rpc
  */

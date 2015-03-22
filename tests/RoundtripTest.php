@@ -54,20 +54,6 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       'Civi\Cxn\Rpc\Exception\InvalidUsageException',
     );
     $cases[] = array(
-      'Civi\Cxn\Rpc\AppClient',
-      Examples::$ca,
-      Examples::$siteA,
-      Examples::$siteA,
-      'Civi\Cxn\Rpc\Exception\InvalidUsageException',
-    );
-    $cases[] = array(
-      'Civi\Cxn\Rpc\AppClient',
-      Examples::$ca,
-      Examples::$appA,
-      Examples::$appA,
-      'Civi\Cxn\Rpc\Exception\InvalidUsageException',
-    );
-    $cases[] = array(
       'Civi\Cxn\Rpc\SiteClient',
       Examples::$ca,
       Examples::$siteA,
@@ -76,6 +62,20 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     );
     $cases[] = array(
       'Civi\Cxn\Rpc\SiteClient',
+      Examples::$ca,
+      Examples::$appA,
+      Examples::$appA,
+      'Civi\Cxn\Rpc\Exception\InvalidUsageException',
+    );
+    $cases[] = array(
+      'Civi\Cxn\Rpc\AppClient',
+      Examples::$ca,
+      Examples::$siteA,
+      Examples::$siteA,
+      'Civi\Cxn\Rpc\Exception\InvalidUsageException',
+    );
+    $cases[] = array(
+      'Civi\Cxn\Rpc\AppClient',
       Examples::$ca,
       Examples::$appA,
       Examples::$appA,
@@ -109,7 +109,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'OK: siteA => appA', // description
-      new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA),
+      new AppClient(Examples::$ca, Examples::$siteA, Examples::$appA),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -120,7 +120,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'OK: siteB => appA', // description
-      new SiteClient(Examples::$ca, Examples::$siteB, Examples::$appA),
+      new AppClient(Examples::$ca, Examples::$siteB, Examples::$appA),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -131,7 +131,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'OK: appB => siteB', // description
-      new AppClient(Examples::$ca, Examples::$appB, Examples::$siteB),
+      new SiteClient(Examples::$ca, Examples::$appB, Examples::$siteB),
       NULL, // expectCreateRequestException
       array('url' => 'http://site-b.org/callback'), // expectTo
 
@@ -142,7 +142,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: siteA encodes valid message for appA... but delivers to appB', // description
-      new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA),
+      new AppClient(Examples::$ca, Examples::$siteA, Examples::$appA),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -153,7 +153,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: appB encodes for siteB... but delivers to appA', // description
-      new AppClient(Examples::$ca, Examples::$appB, Examples::$siteB),
+      new SiteClient(Examples::$ca, Examples::$appB, Examples::$siteB),
       NULL, // expectCreateRequestException
       array('url' => 'http://site-b.org/callback'), // expectTo
 
@@ -164,7 +164,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: siteA encodes for appA... but delivers to siteB', // description
-      new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA),
+      new AppClient(Examples::$ca, Examples::$siteA, Examples::$appA),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -175,7 +175,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: siteBadUrl sends a message to appA, which rejects it', // description
-      new SiteClient(Examples::$ca, Examples::$siteBadUrl, Examples::$appA),
+      new AppClient(Examples::$ca, Examples::$siteBadUrl, Examples::$appA),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -186,7 +186,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: siteBadId sends a message to appA, which rejects it', // description
-      new SiteClient(Examples::$ca, Examples::$siteBadId, Examples::$appA),
+      new AppClient(Examples::$ca, Examples::$siteBadId, Examples::$appA),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -197,7 +197,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: siteA => appA, but siteA was tricked into loading Mallory\'s appA cert!',
-      new SiteClient(Examples::$ca, Examples::$siteA, Examples::$malloryAppA),
+      new AppClient(Examples::$ca, Examples::$siteA, Examples::$malloryAppA),
       'Civi\Cxn\Rpc\Exception\InvalidCertException', // expectCreateRequestException
       NULL, // expectTo
 
@@ -208,7 +208,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: Mallory makes a fake site and tries to trick appA into doing something.',
-      new SiteClient(Examples::$malloryCa, Examples::$mallorySiteA, Examples::$appA, FALSE),
+      new AppClient(Examples::$malloryCa, Examples::$mallorySiteA, Examples::$appA, FALSE),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -219,7 +219,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $cases[] = array(
       'Error: client is using an expired certificate.', // description
-      new SiteClient(Examples::$ca, Examples::$siteBadOld, Examples::$appA, FALSE),
+      new AppClient(Examples::$ca, Examples::$siteBadOld, Examples::$appA, FALSE),
       NULL, // expectCreateRequestException
       array('url' => 'http://app-a.com/callback'), // expectTo
 
@@ -308,7 +308,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
    * Send a message from siteA to appA, but munge the data along the way.
    */
   public function testInvalidSig() {
-    $client = new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA);
+    $client = new AppClient(Examples::$ca, Examples::$siteA, Examples::$appA);
     $server = new AppServer(Examples::$ca, Examples::$appA);
 
     // Prepare a proper message
@@ -342,7 +342,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
    * Send a message from siteA to appA, but receive a response from appB.
    */
   public function testIncorrectResponder() {
-    $client = new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA);
+    $client = new AppClient(Examples::$ca, Examples::$siteA, Examples::$appA);
 
     $server = new AppServer(Examples::$ca, Examples::$appB);
     $cipherText = $server->createMessage(array('muahahaha'), Examples::$siteA);

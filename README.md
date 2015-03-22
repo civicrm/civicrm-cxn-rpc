@@ -31,5 +31,5 @@ Base Classes
 When creating a new agent, one may should use one of these four
 helper classes:
 
- * For connecting from an application to a site, use AppClient and SiteServer.
- * For connecting from a site to an application, use SiteClient and AppServer.
+ * For connecting from an application to a site, use SiteClient and SiteServer.
+ * For connecting from a site to an application, use AppClient and AppServer.

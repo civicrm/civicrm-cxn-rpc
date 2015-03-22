@@ -4,8 +4,8 @@ namespace Civi\Cxn\Rpc;
 /**
  * Class AppClient
  *
- * The AppClient formats outgoing requests on behalf of an application. For example,
- * the AppClient for AddressCleanup.com connects to the SiteServer for SaveTheWhales.org.
+ * The AppClient formats outgoing requests on behalf of an end-user organization. For example,
+ * the AppClient for SaveTheWhales.org connects to the AppServer for AddressCleanup.com.
  *
  * @package Civi\Cxn\Rpc
  */
@@ -15,7 +15,7 @@ class AppClient extends BaseClient {
    *   The extendendUsage attribute which should be present on my certificate.
    */
   protected function getMyExpectedCertUsage() {
-    return AppIdentity::X509_USAGE;
+    return SiteIdentity::X509_USAGE;
   }
 
   /**
@@ -23,7 +23,7 @@ class AppClient extends BaseClient {
    *   The extendendUsage attribute which should be present on my certificate.
    */
   protected function getExpectedRemoteUsage() {
-    return SiteIdentity::X509_USAGE;
+    return AppIdentity::X509_USAGE;
   }
 
 }
