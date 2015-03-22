@@ -1,6 +1,8 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Exception\InvalidSigException;
+
 class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
   /**
@@ -299,6 +301,41 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     // client receives response
     $response = $client->parseResponse($respCiphertext);
     $this->assertEquals('value-123', $response['field']);
+  }
+
+  /**
+   * Send a message from siteA to appA, but munge the data along the way.
+   */
+  public function testInvalidSig() {
+    $client = new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA);
+    $server = new AppServer(Examples::$ca, Examples::$appA);
+
+    // Prepare a proper message
+    $origCiphertext = $client->createRequest(array(
+      'entity-1',
+      'action-1',
+      array(
+        'foo' => 'bar',
+      ),
+    ));
+
+    // That messag looks OK...
+    $server->parseRequest($origCiphertext);
+
+    // But what happens if MitM munges the data?
+    $envelope = json_decode($origCiphertext, TRUE);
+    $envelope['r'] = json_encode(array('muahahaha'));
+    $newCiphertext = json_encode($envelope);
+
+    // Now try processing
+    try {
+      $server->parseRequest($newCiphertext);
+      $this->fail('Expected InvalidSigException');
+    }
+    catch (InvalidSigException $e) {
+      // oK
+    }
+
   }
 
 }

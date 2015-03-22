@@ -47,17 +47,18 @@ abstract class BaseClient implements ClientInterface {
    *   Serialized request.
    */
   public function createRequest($data) {
-    $payload = json_encode(array(
-      $this->myIdentity->getCert(),
-      Time::getTime() + Constants::REQUEST_TTL,
-      $data,
-    ));
+    $envelope = array(
+      'crt' => $this->myIdentity->getCert(),
+      'ttl' => Time::getTime() + Constants::REQUEST_TTL,
+      'r' => json_encode($data),
+    );
     if ($this->getEnableValidation()) {
       $this->remoteIdentity->validate($this->caIdentity);
     }
+    $envelope['sig'] = base64_encode($this->myIdentity->getRsaKey('privatekey')->sign($envelope['ttl'] . ':' . $envelope['r']));
 
     // FIXME encrypt $payload with $myPrivate and $remotePublic
-    return $payload;
+    return json_encode($envelope);
   }
 
   public function parseResponse($response) {

@@ -1,9 +1,9 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-abstract class BaseIdentity {
+use Civi\Cxn\Rpc\Exception\IdentityException;
 
-  const KEYLEN = 2048;
+abstract class BaseIdentity {
 
   /**
    * @var string
@@ -21,11 +21,16 @@ abstract class BaseIdentity {
   protected $keypair;
 
   /**
+   * @var array
+   */
+  protected $rsaKeypair;
+
+  /**
    * @return array
    */
   protected function createKeypair() {
     $rsa = new \Crypt_RSA();
-    return $rsa->createKey(self::KEYLEN);
+    return $rsa->createKey(Constants::RSA_KEYLEN);
   }
 
   public function createCSR($siteId, $callbackUrl) {
@@ -86,6 +91,34 @@ abstract class BaseIdentity {
    */
   public function getKey($name) {
     return $this->keypair[$name];
+  }
+
+  /**
+   * @param string $name
+   *   Name of key ('privatekey' or 'publickey').
+   * @return \Crypt_RSA
+   */
+  public function getRsaKey($name) {
+    if (!isset($this->rsaKeypair[$name])) {
+      if (isset($this->keypair[$name])) {
+        $rsa = new \Crypt_RSA();
+        $rsa->loadKey($this->getKey($name));
+        if ($name == 'publickey') {
+          $rsa->setPublicKey();
+        }
+        $this->rsaKeypair[$name] = $rsa;
+      }
+      elseif ($this->cert && $name == 'publickey') {
+        $this->rsaKeypair[$name] = $this->getCertAsX509()->getPublicKey();
+      }
+      else {
+        throw new IdentityException("Failed to locate key: " . $name);
+      }
+      $this->rsaKeypair[$name]->setEncryptionMode(Constants::RSA_ENC_MODE);
+      $this->rsaKeypair[$name]->setSignatureMode(Constants::RSA_SIG_MODE);
+    } $this->rsaKeypair[$name]->setHash(Constants::RSA_HASH);
+
+    return $this->rsaKeypair[$name];
   }
 
 }

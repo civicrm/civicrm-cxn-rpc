@@ -3,6 +3,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\IdentityException;
 use Civi\Cxn\Rpc\Exception\InvalidRequestException;
+use Civi\Cxn\Rpc\Exception\InvalidSigException;
 use Civi\Cxn\Rpc\Exception\InvalidUsageException;
 
 abstract class BaseServer implements ServerInterface {
@@ -34,17 +35,24 @@ abstract class BaseServer implements ServerInterface {
    * @throws InvalidRequestException
    */
   public function parseRequest($request) {
-    list ($remoteCert, $expires, $payload) = json_decode($request, TRUE);
-    if (Time::getTime() > $expires) {
+    $envelope = json_decode($request, TRUE);
+
+    if (Time::getTime() > $envelope['ttl']) {
       throw new InvalidRequestException("Invalid request: expired");
     }
-    $remoteIdentity = AgentIdentity::load($remoteCert);
+
+    $remoteIdentity = AgentIdentity::load($envelope['crt']);
     if ($this->getExpectedRemoteUsage() !== $remoteIdentity->getUsage()) {
       throw new InvalidUsageException("Certificate presents incorrect usage. Expected: " . $this->getExpectedRemoteUsage());
     }
-
     $remoteIdentity->validate($this->caIdentity);
-    return array($remoteIdentity, $payload);
+
+    if (!$remoteIdentity->getRsaKey('publickey')->verify($envelope['ttl'] . ':' . $envelope['r'], base64_decode($envelope['sig']))) {
+      throw new InvalidSigException("Envelope signature is invalid.");
+    }
+
+    $plaintext = json_decode($envelope['r'], TRUE);
+    return array($remoteIdentity, $plaintext);
   }
 
   /**
