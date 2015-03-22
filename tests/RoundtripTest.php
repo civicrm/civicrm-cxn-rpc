@@ -300,8 +300,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $this->assertTrue(is_string($respCiphertext));
 
     // client receives response
-    $response = $client->parseResponse($respCiphertext);
-    $this->assertEquals('value-123', $response['field']);
+    list($respIdentity, $respData) = $client->parseResponse($respCiphertext);
+    $this->assertEquals('value-123', $respData['field']);
   }
 
   /**
@@ -320,8 +320,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       ),
     ));
 
-    // That messag looks OK...
-    $server->parseRequest($origCiphertext);
+    // That message looks OK...
+    $server->parseMessage($origCiphertext);
 
     // But what happens if MitM munges the data?
     $envelope = json_decode(Examples::$appA->getRsaKey('privatekey')->decrypt($origCiphertext), TRUE);
@@ -330,7 +330,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     // Now try processing
     try {
-      $server->parseRequest($newCiphertext);
+      $server->parseMessage($newCiphertext);
       $this->fail('Expected InvalidSigException');
     }
     catch (InvalidSigException $e) {
@@ -345,7 +345,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $client = new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA);
 
     $server = new AppServer(Examples::$ca, Examples::$appB);
-    $cipherText = $server->createResponse(array('muahahaha'), Examples::$siteA);
+    $cipherText = $server->createMessage(array('muahahaha'), Examples::$siteA);
 
     try {
       $client->parseResponse($cipherText);

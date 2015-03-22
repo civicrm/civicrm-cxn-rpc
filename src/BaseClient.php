@@ -4,38 +4,17 @@ namespace Civi\Cxn\Rpc;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Exception\InvalidUsageException;
 
-abstract class BaseClient implements ClientInterface {
-
-  /**
-   * @var BaseIdentity
-   */
-  protected $caIdentity;
-
-  /**
-   * @var AgentIdentity
-   */
-  protected $myIdentity;
+abstract class BaseClient extends Agent implements ClientInterface {
 
   /**
    * @var AgentIdentity
    */
   protected $remoteIdentity;
 
-  /**
-   * @var bool
-   */
-  protected $enableValidation;
-
-
   public function __construct($caIdentity, $myIdentity, $remoteIdentity, $enableValidation = TRUE) {
-    $this->caIdentity = $caIdentity;
-    $this->myIdentity = $myIdentity;
-    $this->remoteIdentity = $remoteIdentity;
-    $this->enableValidation = $enableValidation;
+    parent::__construct($caIdentity, $myIdentity, $enableValidation);
 
-    if ($this->getMyExpectedCertUsage() != $this->myIdentity->getUsage()) {
-      throw new InvalidUsageException("Cannot setup client. My certificate must have usage flag: " . $this->getMyExpectedCertUsage());
-    }
+    $this->remoteIdentity = $remoteIdentity;
     if ($this->getExpectedRemoteUsage() != $this->remoteIdentity->getUsage()) {
       throw new InvalidUsageException("Cannot setup client. Remote certificate must have usage flag: " . $this->getExpectedRemoteUsage());
     }
@@ -48,23 +27,21 @@ abstract class BaseClient implements ClientInterface {
    *   Serialized request.
    */
   public function createRequest($data) {
-    return Message::encode($this->caIdentity, $this->myIdentity, $this->remoteIdentity, $this->getEnableValidation(), $data);
+    return $this->createMessage($data, $this->remoteIdentity);
   }
 
   /**
-   * @param $ciphertext
+   * @param string $ciphertext
+   *   Serialized request.
    * @return array
-   *   Response data.
-   * @throws Exception\InvalidMessageException
-   * @throws Exception\InvalidSigException
-   * @throws InvalidUsageException
+   *   Array(0 => AgentIdentity $remoteIdentity, 1=> $reqData).
    */
   public function parseResponse($ciphertext) {
-    list ($remoteIdentity, $response) = Message::decode($this->caIdentity, $this->myIdentity, $this->getExpectedRemoteUsage(), $ciphertext);
+    list ($remoteIdentity, $response) = $this->parseMessage($ciphertext);
     if ($this->remoteIdentity->getAgentId() != $remoteIdentity->getAgentId()) {
       throw new InvalidMessageException("Message contains incorrect agent ID.");
     }
-    return $response;
+    return array($remoteIdentity, $response);
   }
 
   /**
@@ -85,34 +62,9 @@ abstract class BaseClient implements ClientInterface {
     if (TRUE) {
       throw new \RuntimeException("TODO: Connect to " . $this->getRemoteUrl());
     }
-    $response = '';
-    return $this->parseResponse($response);
+    $respCiphertext = '';
+    list ($remoteIdentity, $respData) = $this->parseResponse($respCiphertext);
+    return $respData;
   }
 
-  /**
-   * @return string
-   *   The extendendUsage attribute which should be present on my certificate.
-   */
-  abstract protected function getMyExpectedCertUsage();
-
-  /**
-   * @return string
-   *   The extendendUsage attribute which should be present on my certificate.
-   */
-  abstract protected function getExpectedRemoteUsage();
-
-
-  /**
-   * @return boolean
-   */
-  public function getEnableValidation() {
-    return $this->enableValidation;
-  }
-
-  /**
-   * @param boolean $enableValidation
-   */
-  public function setEnableValidation($enableValidation) {
-    $this->enableValidation = $enableValidation;
-  }
 }
