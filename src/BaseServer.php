@@ -34,7 +34,7 @@ abstract class BaseServer implements ServerInterface {
    * @throws InvalidRequestException
    */
   public function parseRequest($request) {
-    list ($remoteCert, $expires, $entity, $action, $params) = json_decode($request, TRUE);
+    list ($remoteCert, $expires, $payload) = json_decode($request, TRUE);
     if (Time::getTime() > $expires) {
       throw new InvalidRequestException("Invalid request: expired");
     }
@@ -44,7 +44,7 @@ abstract class BaseServer implements ServerInterface {
     }
 
     $remoteIdentity->validate($this->caIdentity);
-    return array($remoteIdentity, $entity, $action, $params);
+    return array($remoteIdentity, $payload);
   }
 
   /**
@@ -63,14 +63,14 @@ abstract class BaseServer implements ServerInterface {
    * @param string $request
    *   Serialized request.
    * @param callable $callable
-   *   Function(AgentIdentity $remoteIdentity, string $entity, string $action, array $params).
+   *   Function(AgentIdentity $remoteIdentity, array $data).
    * @return string
    *   Serialized response.
    */
   public function handle($request, $callable) {
     // FIXME: format exceptions
-    list ($parsedIdentity, $parsedEntity, $parsedAction, $parsedParams) = $this->parseRequest($request);
-    $response = call_user_func($callable, $parsedIdentity, $parsedEntity, $parsedAction, $parsedParams);
+    list ($parsedIdentity, $payload) = $this->parseRequest($request);
+    $response = call_user_func($callable, $parsedIdentity, $payload);
     return $this->createResponse($response, $parsedIdentity);
   }
 

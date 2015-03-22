@@ -247,8 +247,12 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     // Client prepares request
     try {
-      $reqCiphertext = $client->createRequest('entity-1', 'action-1', array(
-        'foo' => 'bar',
+      $reqCiphertext = $client->createRequest(array(
+        'entity-1',
+        'action-1',
+        array(
+          'foo' => 'bar',
+        ),
       ));
     }
     catch (\Exception $e) {
@@ -264,7 +268,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     // Server receives request and prepares response
     try {
-      $respCiphertext = $server->handle($reqCiphertext, function ($identity, $entity, $action, $params) use ($expectParseRequestException, $expectFrom, $test) {
+      $respCiphertext = $server->handle($reqCiphertext, function ($identity, $data) use ($expectParseRequestException, $expectFrom, $test) {
+        list ($entity, $action, $params) = $data;
         // Parse exception would have fired already.
         $test->assertNull($expectParseRequestException);
 

@@ -41,26 +41,21 @@ abstract class BaseClient implements ClientInterface {
   }
 
   /**
-   * @param string $entity
-   *   Entity name.
-   * @param string $action
-   *   Action name.
-   * @param array $params
-   *   Array-tree parameters.
+   * @param array $data
+   *   Array-tree.
    * @return string
    *   Serialized request.
    */
-  public function createRequest($entity, $action, $params) {
+  public function createRequest($data) {
     $payload = json_encode(array(
       $this->myIdentity->getCert(),
       Time::getTime() + Constants::REQUEST_TTL,
-      $entity,
-      $action,
-      $params,
+      $data,
     ));
     if ($this->getEnableValidation()) {
       $this->remoteIdentity->validate($this->caIdentity);
     }
+
     // FIXME encrypt $payload with $myPrivate and $remotePublic
     return $payload;
   }
@@ -78,17 +73,13 @@ abstract class BaseClient implements ClientInterface {
   }
 
   /**
-   * @param string $entity
-   *   Entity name.
-   * @param string $action
-   *   Action name.
-   * @param array $params
-   *   Array-tree parameters.
+   * @param array $data
+   *   Array-tree.
    * @return array
    *   Response.
    */
-  public function sendRequest($entity, $action, $params) {
-    $request = $this->createRequest($entity, $action, $params);
+  public function sendRequest($data) {
+    $request = $this->createRequest($data);
     if (TRUE) {
       throw new \RuntimeException("TODO: Connect to " . $this->getRemoteUrl());
     }

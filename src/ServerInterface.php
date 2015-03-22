@@ -7,8 +7,8 @@ namespace Civi\Cxn\Rpc;
  *
  * @code
  * $server = new ConcreteServer(...);
- * $server->handle($_POST['encryptedRequest'], function($identity, $entity, $action, $params){
- *   return "Thank you, " . $identity->getAgentId() . " I believe that $entity is a good entity.";
+ * $server->handle($_POST['encryptedRequest'], function($identity, $data){
+ *   return "Thank you, " . $identity->getAgentId() . " I believe that " . $data['entity'] ." is a good entity.";
  * });
  * @endcode
  */
@@ -20,7 +20,7 @@ interface ServerInterface {
    * @param string $request
    *   Serialized, encrypted request.
    * @param callable $callable
-   *   Function(AgentIdentity $remoteIdentity, string $entity, string $action, array $params).
+   *   Function(AgentIdentity $remoteIdentity, array $data).
    * @return string
    *   Serialized, encrypted response.
    */

@@ -4,15 +4,11 @@ namespace Civi\Cxn\Rpc;
 interface ClientInterface {
 
   /**
-   * @param string $entity
-   *   Entity name.
-   * @param string $action
-   *   Action name.
-   * @param array $params
-   *   Array-tree parameters.
+   * @param array $data
+   *   Array-tree.
    * @return array
    *   Parsed response data.
    */
-  public function sendRequest($entity, $action, $params);
+  public function sendRequest($data);
 
 }
