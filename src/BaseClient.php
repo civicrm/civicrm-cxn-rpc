@@ -1,6 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Exception\InvalidUsageException;
 
 abstract class BaseClient implements ClientInterface {
@@ -47,22 +48,23 @@ abstract class BaseClient implements ClientInterface {
    *   Serialized request.
    */
   public function createRequest($data) {
-    $envelope = array(
-      'crt' => $this->myIdentity->getCert(),
-      'ttl' => Time::getTime() + Constants::REQUEST_TTL,
-      'r' => json_encode($data),
-    );
-    if ($this->getEnableValidation()) {
-      $this->remoteIdentity->validate($this->caIdentity);
-    }
-    $envelope['sig'] = base64_encode($this->myIdentity->getRsaKey('privatekey')->sign($envelope['ttl'] . ':' . $envelope['r']));
-
-    return $this->remoteIdentity->getRsaKey('publickey')->encrypt(json_encode($envelope));
+    return Message::encode($this->caIdentity, $this->myIdentity, $this->remoteIdentity, $this->getEnableValidation(), $data);
   }
 
-  public function parseResponse($response) {
-    // FIXME decrypt $response with $myPrivate and $remotePublic
-    return json_decode($response, TRUE);
+  /**
+   * @param $ciphertext
+   * @return array
+   *   Response data.
+   * @throws Exception\InvalidMessageException
+   * @throws Exception\InvalidSigException
+   * @throws InvalidUsageException
+   */
+  public function parseResponse($ciphertext) {
+    list ($remoteIdentity, $response) = Message::decode($this->caIdentity, $this->myIdentity, $this->getExpectedRemoteUsage(), $ciphertext);
+    if ($this->remoteIdentity->getAgentId() != $remoteIdentity->getAgentId()) {
+      throw new InvalidMessageException("Message contains incorrect agent ID.");
+    }
+    return $response;
   }
 
   /**

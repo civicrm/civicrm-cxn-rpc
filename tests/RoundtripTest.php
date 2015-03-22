@@ -1,6 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Exception\InvalidSigException;
 
 class RoundtripTest extends \PHPUnit_Framework_TestCase {
@@ -335,7 +336,24 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     catch (InvalidSigException $e) {
       // OK!
     }
+  }
 
+  /**
+   * Send a message from siteA to appA, but receive a response from appB.
+   */
+  public function testIncorrectResponder() {
+    $client = new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA);
+
+    $server = new AppServer(Examples::$ca, Examples::$appB);
+    $cipherText = $server->createResponse(array('muahahaha'), Examples::$siteA);
+
+    try {
+      $client->parseResponse($cipherText);
+      $this->fail('Expected InvalidMessageException');
+    }
+    catch (InvalidMessageException $e) {
+      // OK!
+    }
   }
 
 }

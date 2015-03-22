@@ -2,10 +2,7 @@
 namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\IdentityException;
-use Civi\Cxn\Rpc\Exception\InvalidRequestException;
-use Civi\Cxn\Rpc\Exception\InvalidSigException;
-use Civi\Cxn\Rpc\Exception\InvalidUsageException;
-use Civi\Cxn\Rpc\Exception\UserErrorException;
+use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 
 abstract class BaseServer implements ServerInterface {
 
@@ -33,42 +30,10 @@ abstract class BaseServer implements ServerInterface {
    * @return array
    *   Array(0 => AgentIdentity $remoteIdentity, 1=> $reqData).
    * @throws IdentityException
-   * @throws InvalidRequestException
+   * @throws InvalidMessageException
    */
   public function parseRequest($request) {
-    $plaintext = UserErrorException::adapt(function () use (&$request) {
-      return $this->myIdentity->getRsaKey('privatekey')->decrypt($request);
-    });
-    $envelope = json_decode($plaintext, TRUE);
-    if (empty($envelope)) {
-      throw new InvalidRequestException("Failed to decrypt an envelope");
-    }
-
-    if (Time::getTime() > $envelope['ttl']) {
-      throw new InvalidRequestException("Invalid request: expired");
-    }
-
-    $remoteIdentity = AgentIdentity::load($envelope['crt']);
-    if ($this->getExpectedRemoteUsage() !== $remoteIdentity->getUsage()) {
-      throw new InvalidUsageException("Certificate presents incorrect usage. Expected: " . $this->getExpectedRemoteUsage());
-    }
-    $remoteIdentity->validate($this->caIdentity);
-
-    $verify = UserErrorException::adapt(function() use ($remoteIdentity, $envelope) {
-      return $remoteIdentity
-        ->getRsaKey('publickey')
-        ->verify(
-          $envelope['ttl'] . ':' . $envelope['r'],
-          base64_decode($envelope['sig']
-          )
-        );
-    });
-    if (!$verify) {
-      throw new InvalidSigException("Envelope signature is invalid.");
-    }
-
-    $reqData = json_decode($envelope['r'], TRUE);
-    return array($remoteIdentity, $reqData);
+    return Message::decode($this->caIdentity, $this->myIdentity, $this->getExpectedRemoteUsage(), $request);
   }
 
   /**
@@ -76,9 +41,7 @@ abstract class BaseServer implements ServerInterface {
    * @return string
    */
   public function createResponse($data, $remoteIdentity) {
-    $payload = json_encode($data);
-    // FIXME encrypt $payload with $myPrivate and $remotePublic
-    return $payload;
+    return Message::encode($this->caIdentity, $this->myIdentity, $remoteIdentity, TRUE, $data);
   }
 
   /**
