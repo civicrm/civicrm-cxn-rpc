@@ -15,9 +15,21 @@ groups:
    registration process is closely managed. In the tests and comments,
    we will refer to an example service called "AddressCleanup.com".
 
+Certificates
+------------
+
 In v0.1, the certificates for sites and applications follow these
 constraints:
 
  * The DN is formed as "CN=callbackUrl, O=uniqueId"
  * The extendedKeyUsage for a site is marked ONLY as "clientAuth".
  * The extendedKeyUsage for an application is marked ONLY as "serverAuth".
+
+Base Classes
+------------
+
+When creating a new agent, one may should use one of these four
+helper classes:
+
+ * For connecting from an application to a site, use AppClient and SiteServer.
+ * For connecting from a site to an application, use SiteClient and AppServer.
