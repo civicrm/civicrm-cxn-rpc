@@ -25,6 +25,12 @@ abstract class BaseIdentity {
    */
   protected $rsaKeypair;
 
+  public function __construct($array = NULL) {
+    if (!empty($array)) {
+      $this->fromArray($array);
+    }
+  }
+
   /**
    * @return array
    */

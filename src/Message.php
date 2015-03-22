@@ -41,7 +41,7 @@ class Message {
       throw new InvalidMessageException("Invalid request: expired");
     }
 
-    $remoteIdentity = AgentIdentity::load($envelope['crt']);
+    $remoteIdentity = AgentIdentity::loadCert($envelope['crt']);
     if ($expectedRemoteUsage !== $remoteIdentity->getUsage()) {
       throw new InvalidUsageException("Certificate presents incorrect usage. Expected: " . $expectedRemoteUsage);
     }

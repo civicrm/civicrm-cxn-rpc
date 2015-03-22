@@ -37,7 +37,7 @@ class AgentIdentity extends BaseIdentity {
    * @return AppIdentity|SiteIdentity
    * @throws IdentityException
    */
-  public static function load($cert) {
+  public static function loadCert($cert) {
     $x509 = new \File_X509();
     $x509->loadX509($cert);
     $usage = $x509->getExtension('id-ce-extKeyUsage');
@@ -62,6 +62,28 @@ class AgentIdentity extends BaseIdentity {
     list($identity->agentId) = $x509->getDNProp('id-at-organizationName');
     $identity->cert = $cert;
     $identity->certX509 = $x509;
+
+    return $identity;
+  }
+
+  /**
+   * Load an identity from a set of files.
+   *
+   * @param string $prefix
+   *   A base name shared by the files. For example, "/tmp/hello"
+   *   would correspond to files "/tmp/hello.crt", "/tmp/hello.key",
+   *   and "/tmp/hello.pub".
+   * @return AgentIdentity
+   */
+  public static function loadFiles($prefix) {
+    $cert = file_get_contents("$prefix.crt");
+    $identity = static::loadCert($cert);
+    $identity->keypair = array();
+    foreach (array('publickey' => "$prefix.pub", 'privatekey' => "$prefix.key") as $name => $file) {
+      if (file_exists($file)) {
+        $identity->keypair[$name] = file_get_contents($file);
+      }
+    }
 
     return $identity;
   }
@@ -130,7 +152,7 @@ class AgentIdentity extends BaseIdentity {
    * @return bool
    */
   protected static function validateAgentId($id) {
-    return !empty($id) && preg_match('/^[a-zA-Z0-9\-_]+$/', $id) && strlen($id) > Constants::AGENT_ID_MIN;
+    return !empty($id) && preg_match('/^[a-zA-Z0-9\-_]+$/', $id) && strlen($id) >= Constants::AGENT_ID_MIN;
   }
 
   public function toArray() {

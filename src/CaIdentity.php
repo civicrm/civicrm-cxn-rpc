@@ -7,8 +7,26 @@ class CaIdentity extends BaseIdentity {
 
   const AGENT_DURATION = '+1 year';
 
-  public static function load($cert) {
-    throw new \Exception("Not implemented");
+  /**
+   * Load an identity from a set of files.
+   *
+   * @param string $prefix
+   *   A base name shared by the files. For example, "/tmp/hello"
+   *   would correspond to files "/tmp/hello.crt", "/tmp/hello.key",
+   *   and "/tmp/hello.pub".
+   * @return AgentIdentity
+   */
+  public static function loadFiles($prefix) {
+    $identity = new CaIdentity();
+    $identity->cert = file_get_contents("$prefix.crt");
+    $identity->keypair = array();
+    foreach (array('publickey' => "$prefix.pub", 'privatekey' => "$prefix.key") as $name => $file) {
+      if (file_exists($file)) {
+        $identity->keypair[$name] = file_get_contents($file);
+      }
+    }
+
+    return $identity;
   }
 
   public static function create($dn) {
