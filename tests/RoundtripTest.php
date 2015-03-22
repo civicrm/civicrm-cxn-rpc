@@ -140,13 +140,24 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     );
 
     $cases[] = array(
+      'Error: siteA encodes valid message for appA... but delivers to appB', // description
+      new SiteClient(Examples::$ca, Examples::$siteA, Examples::$appA),
+      NULL, // expectCreateRequestException
+      array('url' => 'http://app-a.com/callback'), // expectTo
+
+      new AppServer(Examples::$ca, Examples::$appB),
+      'Civi\Cxn\Rpc\Exception\UserErrorException', // expectParseRequestException
+      NULL, // expectFrom
+    );
+
+    $cases[] = array(
       'Error: appB encodes for siteB... but delivers to appA', // description
       new AppClient(Examples::$ca, Examples::$appB, Examples::$siteB),
       NULL, // expectCreateRequestException
       array('url' => 'http://site-b.org/callback'), // expectTo
 
       new AppServer(Examples::$ca, Examples::$appA),
-      'Civi\Cxn\Rpc\Exception\InvalidUsageException', // expectParseRequestException
+      'Civi\Cxn\Rpc\Exception\UserErrorException', // expectParseRequestException
       NULL, // expectFrom
     );
 
@@ -157,7 +168,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       array('url' => 'http://app-a.com/callback'), // expectTo
 
       new SiteServer(Examples::$ca, Examples::$siteB),
-      'Civi\Cxn\Rpc\Exception\InvalidUsageException', // expectParseRequestException
+      'Civi\Cxn\Rpc\Exception\UserErrorException', // expectParseRequestException
       NULL, // expectFrom
     );
 
@@ -215,17 +226,6 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       'Civi\Cxn\Rpc\Exception\ExpiredCertException', // expectParseRequestException
       NULL, // expectFrom
     );
-
-    //$cases[] = array(
-    //  'Error: siteA encodes valid message for appA... but delivers to appB', // description
-    //  new SiteClient($ca, $siteA, $appA),
-    //  NULL, // expectCreateRequestException
-    //  array('url' => 'http://app-a.com/callback'), // expectTo
-    //
-    //  new AppServer($ca, $appB),
-    //  'Civi\Cxn\Rpc\Exception\UndecryptableException', // expectParseRequestException
-    //  NULL, // expectFrom
-    //);
 
     return $cases;
   }
@@ -323,9 +323,9 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $server->parseRequest($origCiphertext);
 
     // But what happens if MitM munges the data?
-    $envelope = json_decode($origCiphertext, TRUE);
+    $envelope = json_decode(Examples::$appA->getRsaKey('privatekey')->decrypt($origCiphertext), TRUE);
     $envelope['r'] = json_encode(array('muahahaha'));
-    $newCiphertext = json_encode($envelope);
+    $newCiphertext = Examples::$appA->getRsaKey('publickey')->encrypt(json_encode($envelope));
 
     // Now try processing
     try {
@@ -333,7 +333,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       $this->fail('Expected InvalidSigException');
     }
     catch (InvalidSigException $e) {
-      // oK
+      // OK!
     }
 
   }

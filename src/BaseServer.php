@@ -5,6 +5,7 @@ use Civi\Cxn\Rpc\Exception\IdentityException;
 use Civi\Cxn\Rpc\Exception\InvalidRequestException;
 use Civi\Cxn\Rpc\Exception\InvalidSigException;
 use Civi\Cxn\Rpc\Exception\InvalidUsageException;
+use Civi\Cxn\Rpc\Exception\UserErrorException;
 
 abstract class BaseServer implements ServerInterface {
 
@@ -30,12 +31,18 @@ abstract class BaseServer implements ServerInterface {
    * @param string $request
    *   Serialized request.
    * @return array
-   *   Array(0 => AgentIdentity $remoteIdentity, 1=> $entity, 2 => $action, 4 => $params).
+   *   Array(0 => AgentIdentity $remoteIdentity, 1=> $reqData).
    * @throws IdentityException
    * @throws InvalidRequestException
    */
   public function parseRequest($request) {
-    $envelope = json_decode($request, TRUE);
+    $plaintext = UserErrorException::adapt(function () use (&$request) {
+      return $this->myIdentity->getRsaKey('privatekey')->decrypt($request);
+    });
+    $envelope = json_decode($plaintext, TRUE);
+    if (empty($envelope)) {
+      throw new InvalidRequestException("Failed to decrypt an envelope");
+    }
 
     if (Time::getTime() > $envelope['ttl']) {
       throw new InvalidRequestException("Invalid request: expired");
@@ -47,12 +54,21 @@ abstract class BaseServer implements ServerInterface {
     }
     $remoteIdentity->validate($this->caIdentity);
 
-    if (!$remoteIdentity->getRsaKey('publickey')->verify($envelope['ttl'] . ':' . $envelope['r'], base64_decode($envelope['sig']))) {
+    $verify = UserErrorException::adapt(function() use ($remoteIdentity, $envelope) {
+      return $remoteIdentity
+        ->getRsaKey('publickey')
+        ->verify(
+          $envelope['ttl'] . ':' . $envelope['r'],
+          base64_decode($envelope['sig']
+          )
+        );
+    });
+    if (!$verify) {
       throw new InvalidSigException("Envelope signature is invalid.");
     }
 
-    $plaintext = json_decode($envelope['r'], TRUE);
-    return array($remoteIdentity, $plaintext);
+    $reqData = json_decode($envelope['r'], TRUE);
+    return array($remoteIdentity, $reqData);
   }
 
   /**
@@ -74,6 +90,7 @@ abstract class BaseServer implements ServerInterface {
    *   Function(AgentIdentity $remoteIdentity, array $data).
    * @return string
    *   Serialized response.
+   * @throws \Exception
    */
   public function handle($request, $callable) {
     // FIXME: format exceptions

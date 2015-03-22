@@ -57,8 +57,7 @@ abstract class BaseClient implements ClientInterface {
     }
     $envelope['sig'] = base64_encode($this->myIdentity->getRsaKey('privatekey')->sign($envelope['ttl'] . ':' . $envelope['r']));
 
-    // FIXME encrypt $payload with $myPrivate and $remotePublic
-    return json_encode($envelope);
+    return $this->remoteIdentity->getRsaKey('publickey')->encrypt(json_encode($envelope));
   }
 
   public function parseResponse($response) {
