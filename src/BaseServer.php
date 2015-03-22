@@ -15,10 +15,33 @@ abstract class BaseServer extends Agent implements ServerInterface {
    * @throws \Exception
    */
   public function handle($request, $callable) {
-    // FIXME: format exceptions
-    list ($parsedIdentity, $payload) = $this->parseMessage($request);
-    $response = call_user_func($callable, $parsedIdentity, $payload);
-    return $this->createMessage($response, $parsedIdentity);
+    // FIXME: return exceptions and errors?
+
+    $errors = array();
+    set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcontext) use (&$errors) {
+      if (!(error_reporting() & $errno)) {
+        return;
+      }
+      $errors[] = array($errno, $errstr, $errfile, $errline);
+    });
+
+    $e = NULL;
+    try {
+      list ($parsedIdentity, $payload) = $this->parseMessage($request);
+      $response = call_user_func($callable, $parsedIdentity, $payload);
+      $result = $this->createMessage($response, $parsedIdentity);
+    }
+    catch (\Exception $e2) {
+      $e = $e2;
+    }
+
+    restore_error_handler();
+
+    if ($e) {
+      throw $e;
+    }
+
+    return $result;
   }
 
 }
