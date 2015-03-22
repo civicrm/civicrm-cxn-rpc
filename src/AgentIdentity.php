@@ -133,4 +133,17 @@ class AgentIdentity extends BaseIdentity {
     return !empty($id) && preg_match('/^[a-zA-Z0-9\-_]+$/', $id) && strlen($id) > Constants::AGENT_ID_MIN;
   }
 
+  public function toArray() {
+    $arr = parent::toArray();
+    $arr['agentId'] = $this->agentId;
+    $arr['callbackUrl'] = $this->callbackUrl;
+    return $arr;
+  }
+
+  public function fromArray($arr) {
+    parent::fromArray($arr);
+    $this->agentId = $arr['agentId'];
+    $this->callbackUrl = $arr['callbackUrl'];
+  }
+
 }

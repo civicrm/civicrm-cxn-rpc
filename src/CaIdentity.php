@@ -3,9 +3,9 @@ namespace Civi\Cxn\Rpc;
 
 class CaIdentity extends BaseIdentity {
 
-  const CA_DURATION = '+1 year';
+  const CA_DURATION = '+10 year';
 
-  const AGENT_DURATION = '+1 month';
+  const AGENT_DURATION = '+1 year';
 
   public static function load($cert) {
     throw new \Exception("Not implemented");

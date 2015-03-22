@@ -121,4 +121,17 @@ abstract class BaseIdentity {
     return $this->rsaKeypair[$name];
   }
 
+  public function toArray() {
+    return array(
+      'cert' => $this->cert,
+      'keypair' => $this->keypair,
+    );
+  }
+
+  public function fromArray($arr) {
+    $this->cert = $arr['cert'];
+    $this->certX509 = NULL;
+    $this->keypair = $arr['keypair'];
+    $this->rsaKeypair = array();
+  }
 }
