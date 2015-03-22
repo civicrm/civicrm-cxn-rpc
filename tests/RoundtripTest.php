@@ -324,9 +324,11 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $server->parseMessage($origCiphertext);
 
     // But what happens if MitM munges the data?
-    $envelope = json_decode(Examples::$appA->getRsaKey('privatekey')->decrypt($origCiphertext), TRUE);
+    list(, $origCiphertextInner) = explode(Constants::PROTOCOL_DELIM, $origCiphertext, 2);
+    $envelope = json_decode(Examples::$appA->getRsaKey('privatekey')->decrypt($origCiphertextInner), TRUE);
     $envelope['r'] = json_encode(array('muahahaha'));
-    $newCiphertext = Examples::$appA->getRsaKey('publickey')->encrypt(json_encode($envelope));
+    $newCiphertext = Constants::PROTOCOL_VERSION . Constants::PROTOCOL_DELIM
+      . Examples::$appA->getRsaKey('publickey')->encrypt(json_encode($envelope));
 
     // Now try processing
     try {

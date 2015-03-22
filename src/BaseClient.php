@@ -61,7 +61,7 @@ abstract class BaseClient extends Agent implements ClientInterface {
     $opts = array(
       'http' => array(
         'method' => 'POST',
-        'header' => 'Content-type: application/x-civi-cxn',
+        'header' => 'Content-type: ' . Constants::MIME_TYPE,
         'content' => $this->createRequest($data),
       ),
     );

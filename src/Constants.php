@@ -29,4 +29,9 @@ class Constants {
 
   const RSA_KEYLEN = 2048;
 
+  const MIME_TYPE = 'application/x-civi-cxn';
+
+  const PROTOCOL_VERSION = 'CXN-0.1';
+
+  const PROTOCOL_DELIM = "";
 }

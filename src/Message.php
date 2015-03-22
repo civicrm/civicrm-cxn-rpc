@@ -17,7 +17,7 @@ class Message {
     }
     $envelope['sig'] = base64_encode($myIdentity->getRsaKey('privatekey')->sign($envelope['ttl'] . ':' . $envelope['r']));
 
-    return $remoteIdentity->getRsaKey('publickey')->encrypt(json_encode($envelope));
+    return Constants::PROTOCOL_VERSION . Constants::PROTOCOL_DELIM . $remoteIdentity->getRsaKey('publickey')->encrypt(json_encode($envelope));
   }
 
   /**
@@ -28,7 +28,12 @@ class Message {
    * @return array
    *   Array(0 => $remoteIdentity, 1 => $data)
    */
-  public static function decode(CaIdentity $caIdentity, AgentIdentity $myIdentity, $expectedRemoteUsage, $ciphertext) {
+  public static function decode(CaIdentity $caIdentity, AgentIdentity $myIdentity, $expectedRemoteUsage, $message) {
+    list ($ver, $ciphertext) = explode(Constants::PROTOCOL_DELIM, $message, 2);
+    if ($ver != Constants::PROTOCOL_VERSION) {
+      throw new InvalidMessageException("Unrecognized protocol version");
+    }
+
     $plaintext = UserErrorException::adapt(function () use ($ciphertext, $myIdentity) {
       return $myIdentity->getRsaKey('privatekey')->decrypt($ciphertext);
     });
