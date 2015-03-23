@@ -1,5 +1,5 @@
-Civi\Cxn\Rpc v0.1
------------------
+Civi\Cxn\Rpc
+------------
 
 Civi\Cxn\Rpc implements are an RPC mechanism based X.509 and JSON.
 Generally, it is based on a assymetric business relationship between two
@@ -35,13 +35,14 @@ Never published.
 Base Classes
 ------------
 
-When creating a new agent, one may should use one of these four
-helper classes:
+When creating a new agent, one should use one of these four helper classes:
 
- * When a site registers with an application, the site uses
-   RegistrationClient, and the app uses RegistrationServer.
- * When an application sends an API call to the site, the
-   app uses ApiClient, and the site uses ApiServer.
+ * RegistrationClient: A site uses this to establish a connection to a
+   an application.
+ * RegistrationServer: An application uses this to accept registrations
+   from sites.
+ * ApiClient: An application uses this to send API calls to the site.
+ * ApiServer: A site uses this to accept API calls from an application.
 
 Policy Recommendations
 ----------------------
