@@ -1,9 +1,6 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-use Civi\Cxn\Rpc\Exception\InvalidMessageException;
-use Civi\Cxn\Rpc\Exception\InvalidSigException;
-
 class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
   public function testRoundtrip() {
