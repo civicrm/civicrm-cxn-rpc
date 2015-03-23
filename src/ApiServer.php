@@ -1,7 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-class APIServer {
+class ApiServer {
 
   /**
    * @var array

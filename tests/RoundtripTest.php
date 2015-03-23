@@ -43,7 +43,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     // The application provider issues an API call to the site.
 
-    $apiServer = new APIServer($appMeta, $siteCxnStore);
+    $apiServer = new ApiServer($appMeta, $siteCxnStore);
     $apiServer->setRouter(function ($cxn, $entity, $action, $params) {
       if ($action == 'echo') {
         return $params;
@@ -53,7 +53,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       }
     });
 
-    $apiClient = new APIClient($appMeta, $appCxnStore, $cxnId);
+    $apiClient = new ApiClient($appMeta, $appCxnStore, $cxnId);
     $apiClient->setHttp(new Http\FakeHttp(function ($verb, $url, $blob) use ($apiServer, $test) {
       $test->assertEquals('http://example.org/civicrm/cxn/api', $url);
       return $apiServer->handle($blob);

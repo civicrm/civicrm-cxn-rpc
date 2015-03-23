@@ -1,7 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-class APIClient {
+class ApiClient {
   /**
    * @var array
    */
