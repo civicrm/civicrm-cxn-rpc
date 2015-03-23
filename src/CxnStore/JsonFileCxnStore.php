@@ -6,7 +6,7 @@ namespace Civi\Cxn\Rpc\CxnStore;
  *
  * This is a very simple implementation. DO NOT USE IN PRODUCTION. It is not multithread safe.
  *
- * @package Civi\Cxn\Adhoc
+ * @package Civi\Cxn\Rpc\CxnStore
  */
 class JsonFileCxnStore implements CxnStoreInterface {
 
