@@ -12,4 +12,5 @@ interface CxnStoreInterface {
   public function add($cxn);
 
   public function remove($cxnId);
+
 }

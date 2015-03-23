@@ -26,7 +26,7 @@ class RegistrationClient {
    * @param string $caCert
    * @param CxnStoreInterface $cxnStore
    */
-  function __construct($caCert, $cxnStore, $siteUrl) {
+  public function __construct($caCert, $cxnStore, $siteUrl) {
     $this->caCert = $caCert;
     $this->cxnStore = $cxnStore;
     $this->siteUrl = $siteUrl;

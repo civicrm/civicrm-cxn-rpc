@@ -14,7 +14,7 @@ class JsonFileCxnStore implements CxnStoreInterface {
 
   private $cache;
 
-  function __construct($file) {
+  public function __construct($file) {
     $this->file = $file;
   }
 

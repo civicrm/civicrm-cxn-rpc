@@ -42,4 +42,5 @@ class Constants {
   const AES_CHARS = 32; // todo: verify
 
   const CXN_ID_CHARS = 16;
+
 }

@@ -31,4 +31,5 @@ class PhpHttp implements HttpInterface {
     }
     return array($headers, $blob, $code);
   }
+
 }

@@ -11,4 +11,5 @@ interface HttpInterface {
    *   array($headers, $blob, $code)
    */
   public function send($verb, $url, $blob);
+
 }

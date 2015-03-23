@@ -19,7 +19,10 @@ class RegistrationServer {
   }
 
   /**
-   * @param $blob
+   * Parse the ciphertext, process it, and return the response.
+   *
+   * @param string $blob
+   *   POST'ed ciphertext.
    * @return array
    *   array($headers, $blob, $code)
    */
@@ -46,6 +49,12 @@ class RegistrationServer {
     return $tuple;
   }
 
+  /**
+   * Parse the ciphertext, process it, send the response, and exit.
+   *
+   * @param string $blob
+   *   POST'ed ciphertext.
+   */
   public function handleAndRespond($blob) {
     list ($headers, $blob, $code) = $this->handle($blob);
     header("X-PHP-Response-Code: $code", TRUE, $code);
@@ -84,6 +93,7 @@ class RegistrationServer {
    *   The CXN record submitted by the client.
    * @param array $params
    *   Additional parameters from the client.
+   * @return array
    */
   public function onCxnRegister($cxn, $params) {
     $this->cxnStore->add($cxn);
@@ -99,6 +109,7 @@ class RegistrationServer {
    *   The CXN record submitted by the client.
    * @param array $params
    *   Additional parameters from the client.
+   * @return array
    */
   public function onCxnUnregister($cxn, $params) {
     $storedCxn = $this->cxnStore->getByCxnId($cxn['cxnId']);

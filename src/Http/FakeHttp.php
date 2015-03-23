@@ -5,7 +5,7 @@ class FakeHttp implements HttpInterface {
 
   protected $callable;
 
-  function __construct($callable) {
+  public function __construct($callable) {
     $this->callable = $callable;
   }
 
@@ -19,4 +19,5 @@ class FakeHttp implements HttpInterface {
   public function send($verb, $url, $blob) {
     return call_user_func($this->callable, $verb, $url, $blob);
   }
+
 }
