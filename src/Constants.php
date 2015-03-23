@@ -34,4 +34,12 @@ class Constants {
   const PROTOCOL_VERSION = 'CXN-0.1';
 
   const PROTOCOL_DELIM = "";
+
+  const CA_DURATION = '+10 years';
+
+  const AGENT_DURATION = '+1 year';
+
+  const AES_CHARS = 32; // todo: verify
+
+  const CXN_ID_CHARS = 16;
 }
