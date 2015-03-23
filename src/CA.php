@@ -62,6 +62,30 @@ class CA {
     file_put_contents($file, $cert);
   }
 
+  public static function createSelfSignedCert($keyPair, $dn) {
+    $privKey = new \Crypt_RSA();
+    $privKey->loadKey($keyPair['privatekey']);
+
+    $pubKey = new \Crypt_RSA();
+    $pubKey->loadKey($keyPair['publickey']);
+    $pubKey->setPublicKey();
+
+    $subject = new \File_X509();
+    $subject->setDN($dn);
+    $subject->setPublicKey($pubKey);
+
+    $issuer = new \File_X509();
+    $issuer->setPrivateKey($privKey);
+    $issuer->setDN($dn);
+
+    $x509 = new \File_X509();
+    $x509->setEndDate(date('c', strtotime(Constants::AGENT_DURATION, Time::getTime())));
+
+    $result = $x509->sign($issuer, $subject);
+    return $x509->saveX509($result);
+  }
+
+
   /**
    * @param array $keyPair
    *   Array with elements:
@@ -116,6 +140,6 @@ class CA {
     if (!$x509->validateDate(Time::getTime())) {
       throw new ExpiredCertException("Identity is invalid. Certificate expired.");
     }
-
   }
+
 }
