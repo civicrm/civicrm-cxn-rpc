@@ -1,29 +1,36 @@
 Civi\Cxn\Rpc v0.1
 -----------------
 
-Civi\Cxn\Rpc implements are an RPC mechanism based X.509 and JSON. 
+Civi\Cxn\Rpc implements are an RPC mechanism based X.509 and JSON.
 Generally, it is based on a assymetric business relationship between two
 groups:
 
  * "Sites" are online properties owned by end-user organizations. They
-   represent an organization's canonical data-store.  There are many sites,
-   and sites may self-register with an HTTP-callback validation protocol.
+   represent an organization's canonical data-store.  There are many sites.
    In the tests and comments, we will refer to an example site
    called "SaveTheWhales.org".
  * "Applications" are online properties with value-added services. They
-   supplement the sites.  There are only a few applications, and the
-   registration process is closely managed. In the tests and comments,
-   we will refer to an example service called "AddressCleanup.com".
+   supplement the sites.  There are only a few applications, and they must
+   certified to go live.  In the tests and comments, we will refer to an
+   example service called "AddressCleanup.com".
 
-Certificates
-------------
+Protocol v0.2
+-------------
 
-In v0.1, the certificates for sites and applications follow these
-constraints:
+There are two message exchanges:
 
- * The DN is formed as "CN=callbackUrl, O=uniqueId"
- * The extendedKeyUsage for a site is marked ONLY as "clientAuth".
- * The extendedKeyUsage for an application is marked ONLY as "serverAuth".
+ * Sites may register (or unregister) with applications. Applications
+   should generally accept new registrations. During registration,
+   the site generates a shared secret (AES-256 key) and sends it to
+   the application (using the app's RSA public-key).
+ * Applications may send API calls to sites. In accordance with Civi
+   API, these are framed as entity+action+params. All API calls
+   are encrypted with the shared secret (AES-256).
+
+Protocol v0.1
+-------------
+
+Never published.
 
 Base Classes
 ------------
@@ -31,5 +38,17 @@ Base Classes
 When creating a new agent, one may should use one of these four
 helper classes:
 
- * For connecting from an application to a site, use SiteClient and SiteServer.
- * For connecting from a site to an application, use AppClient and AppServer.
+ * When a site registers with an application, the site uses
+   RegistrationClient, and the app uses RegistrationServer.
+ * When an application sends an API call to the site, the
+   app uses ApiClient, and the site uses ApiServer.
+
+Policy Recommendations
+----------------------
+
+ * Applications should accept new registrations. Applications should
+   reject existing registrations unless the shared-secret is
+   identical.
+ * Applications should not make assumptions about the version of
+   CiviCRM used by any given site. Rather, they should periodically
+   call "System.get" API to determine the configuration.
