@@ -12,9 +12,6 @@
             "Civi\\Cxn\\Rpc\\": "src/"
          }
     },
-    "bin": [
-        "bin/cxnclient.php"
-    ],
     "license": "MIT",
     "authors": [
         {
