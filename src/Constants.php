@@ -19,7 +19,7 @@ class Constants {
   /**
    * Number of characters in an agent ID.
    */
-  const AGENT_ID_MIN = 16;
+  const APP_ID_CHARS = 16;
 
   const RSA_ENC_MODE = CRYPT_RSA_ENCRYPTION_OAEP;
 
@@ -37,7 +37,7 @@ class Constants {
 
   const CA_DURATION = '+10 years';
 
-  const AGENT_DURATION = '+1 year';
+  const APP_DURATION = '+1 year';
 
   const AES_CHARS = 32; // todo: verify
 

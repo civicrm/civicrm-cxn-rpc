@@ -79,7 +79,7 @@ class CA {
     $issuer->setDN($dn);
 
     $x509 = new \File_X509();
-    $x509->setEndDate(date('c', strtotime(Constants::AGENT_DURATION, Time::getTime())));
+    $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
     $result = $x509->sign($issuer, $subject);
     return $x509->saveX509($result);
@@ -124,7 +124,7 @@ class CA {
     $issuer->setPrivateKey($privKey);
 
     $x509 = new \File_X509();
-    $x509->setEndDate(date('c', strtotime(Constants::AGENT_DURATION, Time::getTime())));
+    $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
     $result = $x509->sign($issuer, $subject);
     return $x509->saveX509($result);
