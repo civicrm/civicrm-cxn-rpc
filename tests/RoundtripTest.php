@@ -29,7 +29,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     $siteCxnStore = new CxnStore();
     $regClient = new RegistrationClient($caCert, $siteCxnStore, 'http://example.org/civicrm/cxn/api');
-    $regClient->setHttp(new FakeHttp(function ($verb, $url, $blob) use ($regServer, $test) {
+    $regClient->setHttp(new Http\FakeHttp(function ($verb, $url, $blob) use ($regServer, $test) {
       $test->assertEquals('http://app-a.com/cxn', $url);
       return $regServer->handle($blob);
     }));
@@ -54,7 +54,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     });
 
     $apiClient = new APIClient($appMeta, $appCxnStore, $cxnId);
-    $apiClient->setHttp(new FakeHttp(function ($verb, $url, $blob) use ($apiServer, $test) {
+    $apiClient->setHttp(new Http\FakeHttp(function ($verb, $url, $blob) use ($apiServer, $test) {
       $test->assertEquals('http://example.org/civicrm/cxn/api', $url);
       return $apiServer->handle($blob);
     }));

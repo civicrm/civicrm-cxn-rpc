@@ -18,7 +18,7 @@ class APIClient {
   protected $cxnId;
 
   /**
-   * @var HttpInterface
+   * @var Http\HttpInterface
    */
   protected $http;
 
@@ -30,6 +30,7 @@ class APIClient {
     $this->appMeta = $appMeta;
     $this->cxnStore = $cxnStore;
     $this->cxnId = $cxnId;
+    $this->http = new Http\PhpHttp();
   }
 
   public function call($entity, $action, $params) {
@@ -46,14 +47,14 @@ class APIClient {
   }
 
   /**
-   * @return HttpInterface
+   * @return Http\HttpInterface
    */
   public function getHttp() {
     return $this->http;
   }
 
   /**
-   * @param HttpInterface $http
+   * @param Http\HttpInterface $http
    */
   public function setHttp($http) {
     $this->http = $http;

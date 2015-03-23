@@ -18,7 +18,7 @@ class RegistrationClient {
   protected $siteUrl;
 
   /**
-   * @var HttpInterface
+   * @var Http\HttpInterface
    */
   protected $http;
 
@@ -30,6 +30,7 @@ class RegistrationClient {
     $this->caCert = $caCert;
     $this->cxnStore = $cxnStore;
     $this->siteUrl = $siteUrl;
+    $this->http = new Http\PhpHttp();
   }
 
   /**
@@ -92,14 +93,14 @@ class RegistrationClient {
   }
 
   /**
-   * @return HttpInterface
+   * @return Http\HttpInterface
    */
   public function getHttp() {
     return $this->http;
   }
 
   /**
-   * @param HttpInterface $http
+   * @param Http\HttpInterface $http
    */
   public function setHttp($http) {
     $this->http = $http;

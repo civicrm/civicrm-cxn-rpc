@@ -1,5 +1,5 @@
 <?php
-namespace Civi\Cxn\Rpc;
+namespace Civi\Cxn\Rpc\Http;
 
 interface HttpInterface {
 
