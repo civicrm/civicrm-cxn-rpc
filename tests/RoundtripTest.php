@@ -63,8 +63,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     // The site unregisters.
     $regClient->unregister($appMeta);
-    //$this->assertNull($siteCxnStore->getByCxnId($cxnId));
-    //$this->assertNull($appCxnStore->getByCxnId($cxnId));
+    $this->assertNull($siteCxnStore->getByCxnId($cxnId));
+    $this->assertNull($appCxnStore->getByCxnId($cxnId));
   }
 
 }
