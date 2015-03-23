@@ -5,6 +5,10 @@ class ArrayCxnStore implements CxnStoreInterface {
 
   protected $cxns = array();
 
+  public function getAll() {
+    return $this->cxns;
+  }
+
   public function getByCxnId($cxnId) {
     return isset($this->cxns[$cxnId]) ? $this->cxns[$cxnId] : NULL;
   }
