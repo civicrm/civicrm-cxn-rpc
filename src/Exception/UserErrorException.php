@@ -1,8 +1,6 @@
 <?php
 namespace Civi\Cxn\Rpc\Exception;
 
-use Exception;
-
 /**
  * Class UserErrorException
  *
@@ -11,7 +9,7 @@ use Exception;
  *
  * @package Civi\Cxn\Rpc\Exception
  */
-class UserErrorException extends \Exception {
+class UserErrorException extends CxnException {
 
   public static function adapt($callable) {
     $errors = array();

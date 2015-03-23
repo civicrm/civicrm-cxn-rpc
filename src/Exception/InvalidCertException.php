@@ -1,6 +1,6 @@
 <?php
 namespace Civi\Cxn\Rpc\Exception;
 
-class InvalidCertException extends IdentityException {
+class InvalidCertException extends CxnException {
 
 }
