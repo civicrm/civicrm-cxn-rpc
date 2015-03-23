@@ -1,7 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-class CxnStore {
+class ArrayCxnStore implements CxnStoreInterface {
 
   protected $cxns = array();
 

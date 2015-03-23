@@ -9,7 +9,7 @@ class APIServer {
   protected $appMeta;
 
   /**
-   * @var CxnStore
+   * @var CxnStoreInterface
    */
   protected $cxnStore;
 
@@ -20,7 +20,7 @@ class APIServer {
 
   /**
    * @param array $appMeta
-   * @param CxnStore $cxnStore
+   * @param CxnStoreInterface $cxnStore
    */
   public function __construct($appMeta, $cxnStore, $router = NULL) {
     $this->appMeta = $appMeta;

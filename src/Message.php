@@ -85,7 +85,7 @@ class Message {
   }
 
   /**
-   * @param CxnStore $cxnStore
+   * @param CxnStoreInterface $cxnStore
    * @param string $ciphertext
    *   Ciphertext.
    * @return array

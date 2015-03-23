@@ -24,10 +24,10 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
         'sys' => array('view all contacts'),
       ),
     );
-    $appCxnStore = new CxnStore();
+    $appCxnStore = new ArrayCxnStore();
     $regServer = new RegistrationServer($appMeta, $appKeyPair, $appCxnStore);
 
-    $siteCxnStore = new CxnStore();
+    $siteCxnStore = new ArrayCxnStore();
     $regClient = new RegistrationClient($caCert, $siteCxnStore, 'http://example.org/civicrm/cxn/api');
     $regClient->setHttp(new Http\FakeHttp(function ($verb, $url, $blob) use ($regServer, $test) {
       $test->assertEquals('http://app-a.com/cxn', $url);
