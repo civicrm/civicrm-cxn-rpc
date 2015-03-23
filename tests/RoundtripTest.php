@@ -1,6 +1,8 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\CxnStore\ArrayCxnStore;
+
 class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
   public function testRoundtrip() {

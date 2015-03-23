@@ -8,7 +8,7 @@ class ApiClient {
   protected $appMeta;
 
   /**
-   * @var CxnStoreInterface
+   * @var CxnStore\CxnStoreInterface
    */
   protected $cxnStore;
 
@@ -24,7 +24,7 @@ class ApiClient {
 
   /**
    * @param array $appMeta
-   * @param CxnStoreInterface $cxnStore
+   * @param CxnStore\CxnStoreInterface $cxnStore
    */
   public function __construct($appMeta, $cxnStore, $cxnId) {
     $this->appMeta = $appMeta;

@@ -10,7 +10,7 @@ class RegistrationServer {
   /**
    * @param array $appMeta
    * @param array $keyPair
-   * @param CxnStoreInterface $cxnStore
+   * @param CxnStore\CxnStoreInterface $cxnStore
    */
   public function __construct($appMeta, $keyPair, $cxnStore) {
     $this->appMeta = $appMeta;
@@ -73,7 +73,7 @@ class RegistrationServer {
   }
 
   /**
-   * @return CxnStoreInterface
+   * @return CxnStore\CxnStoreInterface
    */
   public function getCxnStore() {
     return $this->cxnStore;

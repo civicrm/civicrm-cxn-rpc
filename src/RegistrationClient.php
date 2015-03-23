@@ -8,7 +8,7 @@ class RegistrationClient {
   protected $caCert;
 
   /**
-   * @var CxnStoreInterface
+   * @var CxnStore\CxnStoreInterface
    */
   protected $cxnStore;
 
@@ -24,7 +24,7 @@ class RegistrationClient {
 
   /**
    * @param string $caCert
-   * @param CxnStoreInterface $cxnStore
+   * @param CxnStore\CxnStoreInterface $cxnStore
    */
   public function __construct($caCert, $cxnStore, $siteUrl) {
     $this->caCert = $caCert;
