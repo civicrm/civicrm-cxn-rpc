@@ -1,7 +1,7 @@
 Civi\Cxn\Rpc
 ------------
 
-Civi\Cxn\Rpc implements are an RPC mechanism based X.509 and JSON.
+Civi\Cxn\Rpc implements an RPC mechanism based on X.509 and JSON.
 Generally, it is based on a assymetric business relationship between two
 groups:
 
@@ -47,9 +47,15 @@ When creating a new agent, one should use one of these four helper classes:
 Policy Recommendations
 ----------------------
 
- * Applications should accept new registrations. Applications should
-   reject existing registrations unless the shared-secret is
-   identical.
- * Applications should not make assumptions about the version of
-   CiviCRM used by any given site. Rather, they should periodically
-   call "System.get" API to determine the configuration.
+ * Applications should accept new registrations. If a registration is
+   attempted with an existing cxnId, then use the shared-secret as
+   client authentication -- if the shared-secret matches, then
+   accept the updated registration; otherwise, reject it.
+ * Applications should periodically validate their connections --
+   i.e. issue an API call for "System.get" to ensure that the
+   connection corresponds to an active Civi installation running
+   a compatible version.
+ * Services should be deployed on HTTPS to provide additional
+   security (e.g. forward-secrecy). However, this could impact
+   compatibility/reach, and the protocol encrypts all messages
+   regardless, so HTTP may still be used.
