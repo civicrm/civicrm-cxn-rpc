@@ -22,7 +22,7 @@ class KeyPair {
    *   - publickey: string.
    */
   public static function load($file) {
-    return json_decode($file, TRUE);
+    return json_decode(file_get_contents($file), TRUE);
   }
 
   /**

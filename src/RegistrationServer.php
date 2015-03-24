@@ -1,11 +1,19 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Exception\CxnException;
+use Psr\Log\NullLogger;
+
 class RegistrationServer {
 
   protected $appMeta;
   protected $keyPair;
   protected $cxnStore;
+
+  /**
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected $log;
 
   /**
    * @param array $appMeta
@@ -14,9 +22,17 @@ class RegistrationServer {
    */
   public function __construct($appMeta, $keyPair, $cxnStore) {
     AppMeta::validate($appMeta);
+    if (empty($keyPair)) {
+      throw new CxnException("Missing keyPair");
+    }
+    if (empty($keyPair)) {
+      throw new CxnException("Missing cxnStore");
+    }
+
     $this->appMeta = $appMeta;
     $this->keyPair = $keyPair;
     $this->cxnStore = $cxnStore;
+    $this->log = new NullLogger();
   }
 
   /**
@@ -31,6 +47,9 @@ class RegistrationServer {
    */
   public function handle($blob) {
     $reqData = Message::decodeCxn02Registration($this->appMeta['appId'], $this->keyPair['privatekey'], $blob);
+    $this->log->debug('Received registration request', array(
+      'reqData' => $reqData,
+    ));
     $cxn = $reqData['cxn'];
     Cxn::validate($cxn);
 
@@ -91,6 +110,20 @@ class RegistrationServer {
   }
 
   /**
+   * @return \Psr\Log\LoggerInterface
+   */
+  public function getLog() {
+    return $this->log;
+  }
+
+  /**
+   * @param \Psr\Log\LoggerInterface $log
+   */
+  public function setLog($log) {
+    $this->log = $log;
+  }
+
+  /**
    * Callback for Cxn.register.
    *
    * @param array $cxn
@@ -100,10 +133,26 @@ class RegistrationServer {
    * @return array
    */
   public function onCxnRegister($cxn, $params) {
-    $this->cxnStore->add($cxn);
-    return array(
-      'is_error' => 0,
-    );
+    $storedCxn = $this->cxnStore->getByCxnId($cxn['cxnId']);
+
+    if (!$storedCxn || $storedCxn['secret'] == $cxn['secret']) {
+      $this->log->info('Register cxnId="{cxnId}": OK', array(
+        'cxnId' => $cxn['cxnId'],
+      ));
+      $this->cxnStore->add($cxn);
+      return array(
+        'is_error' => 0,
+      );
+    }
+    else {
+      $this->log->info('Register cxnId="{cxnId}": Secret does not match.', array(
+        'cxnId' => $cxn['cxnId'],
+      ));
+      return array(
+        'is_error' => 1,
+        'error_message' => 'Secret does not match previous registration.',
+      );
+    }
   }
 
   /**
@@ -117,13 +166,28 @@ class RegistrationServer {
    */
   public function onCxnUnregister($cxn, $params) {
     $storedCxn = $this->cxnStore->getByCxnId($cxn['cxnId']);
-    if ($storedCxn && $storedCxn['secret'] == $cxn['secret']) {
+    if (!$storedCxn) {
+      $this->log->info('Unregister cxnId="{cxnId}": Non-existent', array(
+        'cxnId' => $cxn['cxnId'],
+      ));
+      return array(
+        'is_error' => 0,
+      );
+    }
+    elseif ($storedCxn['secret'] == $cxn['secret']) {
+      $this->log->info('Unregister cxnId="{cxnId}: OK"', array(
+        'cxnId' => $cxn['cxnId'],
+      ));
       $this->cxnStore->remove($cxn['cxnId']);
       return array(
         'is_error' => 0,
       );
     }
     else {
+      $this->log->info('Unregister cxnId="{cxnId}": Secret does not match.', array(
+        'cxnId' => $cxn['cxnId'],
+      ));
+
       return array(
         'is_error' => 1,
         'error_message' => 'Incorrect cxnId or secret.',

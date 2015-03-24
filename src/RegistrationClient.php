@@ -2,6 +2,7 @@
 namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\CxnException;
+use Psr\Log\NullLogger;
 
 class RegistrationClient {
   /**
@@ -25,14 +26,22 @@ class RegistrationClient {
   protected $http;
 
   /**
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected $log;
+
+  /**
    * @param string $caCert
+   *   The CA certificate data, or NULL ot disable certificate validation.
    * @param CxnStore\CxnStoreInterface $cxnStore
+   *   The place to store active connections.
    */
   public function __construct($caCert, $cxnStore, $siteUrl) {
     $this->caCert = $caCert;
     $this->cxnStore = $cxnStore;
     $this->siteUrl = $siteUrl;
     $this->http = new Http\PhpHttp();
+    $this->log = new NullLogger();
   }
 
   /**
@@ -61,7 +70,13 @@ class RegistrationClient {
     $this->cxnStore->add($cxn);
 
     list($respCode, $respData) = $this->doCall($appMeta, 'Cxn', 'register', array(), $cxn);
-    return array($cxn['cxnId'], $respCode == 200 && $respData['is_error'] == 0);
+    $success = $respCode == 200 && $respData['is_error'] == 0;
+    $this->log->info($success ? 'Registered cxnId={cxnId} ({appId}, {appUrl})' : 'Failed to register cxnId={cxnId} ({appId}, {appUrl})', array(
+      'cxnId' => $cxn['cxnId'],
+      'appId' => $cxn['appId'],
+      'appUrl' => $cxn['appUrl'],
+    ));
+    return array($cxn['cxnId'], $success);
   }
 
   /**
@@ -74,6 +89,12 @@ class RegistrationClient {
     if (!$cxn) {
       return array(NULL, NULL);
     }
+
+    $this->log->info('Unregister cxnId={cxnId} ({appId}, {appUrl})', array(
+      'cxnId' => $cxn['cxnId'],
+      'appId' => $cxn['appId'],
+      'appUrl' => $cxn['appUrl'],
+    ));
 
     $e = NULL;
     try {
@@ -106,6 +127,20 @@ class RegistrationClient {
    */
   public function setHttp($http) {
     $this->http = $http;
+  }
+
+  /**
+   * @return \Psr\Log\LoggerInterface
+   */
+  public function getLog() {
+    return $this->log;
+  }
+
+  /**
+   * @param \Psr\Log\LoggerInterface $log
+   */
+  public function setLog($log) {
+    $this->log = $log;
   }
 
   /**

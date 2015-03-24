@@ -54,6 +54,9 @@ class Message {
     $plaintext = UserErrorException::adapt(function () use ($ciphertext, $appPrivKey) {
       return self::getRsa($appPrivKey, 'private')->decrypt($ciphertext);
     });
+    if (empty($plaintext)) {
+      throw new InvalidMessageException("Invalid request: decryption produced empty message");
+    }
     $envelope = json_decode($plaintext, TRUE);
     if (Time::getTime() > $envelope['ttl']) {
       throw new InvalidMessageException("Invalid request: expired");

@@ -45,4 +45,5 @@ class AppMeta {
 
     return $errors;
   }
+
 }
