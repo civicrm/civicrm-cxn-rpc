@@ -1,6 +1,8 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Exception\CxnException;
+
 class RegistrationClient {
   /**
    * @var string
@@ -39,7 +41,10 @@ class RegistrationClient {
    *   Array($cxnId, $isOk).
    */
   public function register($appMeta) {
-    CA::validate($this->caCert, $appMeta['appCert']);
+    AppMeta::validate($appMeta);
+    if ($this->caCert) {
+      CA::validate($this->caCert, $appMeta['appCert']);
+    }
 
     $cxn = $this->cxnStore->getByAppId($appMeta['appId']);
     if (!$cxn) {
@@ -52,6 +57,7 @@ class RegistrationClient {
     $cxn['appUrl'] = $appMeta['appUrl'];
     $cxn['siteUrl'] = $this->siteUrl;
     $cxn['perm'] = $appMeta['perm'];
+    Cxn::validate($cxn);
     $this->cxnStore->add($cxn);
 
     list($respCode, $respData) = $this->doCall($appMeta, 'Cxn', 'register', array(), $cxn);

@@ -13,6 +13,7 @@ class RegistrationServer {
    * @param CxnStore\CxnStoreInterface $cxnStore
    */
   public function __construct($appMeta, $keyPair, $cxnStore) {
+    AppMeta::validate($appMeta);
     $this->appMeta = $appMeta;
     $this->keyPair = $keyPair;
     $this->cxnStore = $cxnStore;
@@ -20,6 +21,8 @@ class RegistrationServer {
 
   /**
    * Parse the ciphertext, process it, and return the response.
+   *
+   * FIXME Catch exceptions and return in a nice format.
    *
    * @param string $blob
    *   POST'ed ciphertext.
@@ -29,6 +32,7 @@ class RegistrationServer {
   public function handle($blob) {
     $reqData = Message::decodeCxn02Registration($this->appMeta['appId'], $this->keyPair['privatekey'], $blob);
     $cxn = $reqData['cxn'];
+    Cxn::validate($cxn);
 
     $respData = array(
       'is_error' => 1,

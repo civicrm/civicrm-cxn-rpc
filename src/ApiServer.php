@@ -29,6 +29,10 @@ class ApiServer {
   }
 
   /**
+   * Parse the ciphertext, process it, and return the response.
+   *
+   * FIXME Catch exceptions and return in a nice format.
+   *
    * @param $blob
    * @return array
    *   array($headers, $blob, $code)
@@ -36,6 +40,7 @@ class ApiServer {
   public function handle($blob) {
     list ($reqCxnId, $reqData) = Message::decodeCxn02Aes($this->cxnStore, $blob);
     $cxn = $this->cxnStore->getByCxnId($reqCxnId);
+    Cxn::validate($cxn);
     list ($entity, $action, $params) = $reqData;
 
     $respData = call_user_func($this->router, $cxn, $entity, $action, $params);
@@ -48,6 +53,12 @@ class ApiServer {
     return $tuple;
   }
 
+  /**
+   * Parse the ciphertext, process it, send the response, and exit.
+   *
+   * @param string $blob
+   *   POST'ed ciphertext.
+   */
   public function handleAndRespond($blob) {
     list ($headers, $blob, $code) = $this->handle($blob);
     header("X-PHP-Response-Code: $code", TRUE, $code);
