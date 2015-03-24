@@ -7,18 +7,27 @@ class PhpHttp implements HttpInterface {
    * @param string $verb
    * @param string $url
    * @param string $blob
+   * @param array $headers
+   *   Array of headers (e.g. "Content-type" => "text/plain").
    * @return array
    *   array($headers, $blob, $code)
    */
-  public function send($verb, $url, $blob) {
+  public function send($verb, $url, $blob, $headers = array()) {
     $opts = array(
       'http' => array(
         'method' => $verb,
         'content' => $blob,
       ),
     );
+    if (!empty($headers)) {
+      $encodedHeaders = '';
+      foreach ($headers as $k => $v) {
+        $encodedHeaders .= $k . ": " . $v . "\r\n";
+      }
+      $opts['http']['header'] = $encodedHeaders;
+    }
     $context = stream_context_create($opts);
-    $blob = file_get_contents($url, FALSE, $context);
+    $respBlob = file_get_contents($url, FALSE, $context);
     $code = NULL;
     $headers = array();
     foreach ($http_response_header as $line) {
@@ -29,7 +38,7 @@ class PhpHttp implements HttpInterface {
         $headers[$matches[1]] = $matches[2];
       }
     }
-    return array($headers, $blob, $code);
+    return array($headers, $respBlob, $code);
   }
 
 }
