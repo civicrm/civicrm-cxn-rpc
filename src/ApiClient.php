@@ -1,6 +1,8 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Psr\Log\NullLogger;
+
 class ApiClient {
   /**
    * @var array
@@ -23,6 +25,11 @@ class ApiClient {
   protected $http;
 
   /**
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected $log;
+
+  /**
    * @param array $appMeta
    * @param CxnStore\CxnStoreInterface $cxnStore
    */
@@ -31,13 +38,21 @@ class ApiClient {
     $this->cxnStore = $cxnStore;
     $this->cxnId = $cxnId;
     $this->http = new Http\PhpHttp();
+    $this->log = new NullLogger();
   }
 
   public function call($entity, $action, $params) {
+    $this->log->debug("Send API call: {entity}.{action} over {cxnId}", array(
+      'entity' => $entity,
+      'action' => $action,
+      'cxnId' => $this->cxnId,
+    ));
     $cxn = $this->cxnStore->getByCxnId($this->cxnId);
     $reqCiphertext = Message::encodeCxn02Aes($cxn['cxnId'], $cxn['secret'],
       array($entity, $action, $params));
-    list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $reqCiphertext);
+    list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $reqCiphertext, array(
+      'Content-type' => Constants::MIME_TYPE,
+    ));
     list ($respCxnId, $respData) = Message::decodeCxn02Aes($this->cxnStore, $respCiphertext);
     if ($respCxnId != $cxn['cxnId']) {
       // Tsk, tsk, Mallory!
@@ -58,6 +73,20 @@ class ApiClient {
    */
   public function setHttp($http) {
     $this->http = $http;
+  }
+
+  /**
+   * @return \Psr\Log\LoggerInterface
+   */
+  public function getLog() {
+    return $this->log;
+  }
+
+  /**
+   * @param \Psr\Log\LoggerInterface $log
+   */
+  public function setLog($log) {
+    $this->log = $log;
   }
 
 }

@@ -45,7 +45,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
 
     // The application provider issues an API call to the site.
 
-    $apiServer = new ApiServer($appMeta, $siteCxnStore);
+    $apiServer = new ApiServer($siteCxnStore);
     $apiServer->setRouter(function ($cxn, $entity, $action, $params) {
       if ($action == 'echo') {
         return $params;

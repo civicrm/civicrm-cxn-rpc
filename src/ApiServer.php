@@ -1,12 +1,9 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-class ApiServer {
+use Psr\Log\NullLogger;
 
-  /**
-   * @var array
-   */
-  protected $appMeta;
+class ApiServer {
 
   /**
    * @var CxnStore\CxnStoreInterface
@@ -19,13 +16,18 @@ class ApiServer {
   protected $router;
 
   /**
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected $log;
+
+  /**
    * @param array $appMeta
    * @param CxnStore\CxnStoreInterface $cxnStore
    */
-  public function __construct($appMeta, $cxnStore, $router = NULL) {
-    $this->appMeta = $appMeta;
+  public function __construct($cxnStore, $router = NULL) {
     $this->cxnStore = $cxnStore;
     $this->router = $router;
+    $this->log = new NullLogger();
   }
 
   /**
@@ -33,17 +35,22 @@ class ApiServer {
    *
    * FIXME Catch exceptions and return in a nice format.
    *
-   * @param $blob
+   * @param string $blob
+   *   POST'ed ciphertext.
    * @return array
-   *   array($headers, $blob, $code)
+   *   Array($headers, $blob, $code).
    */
   public function handle($blob) {
+    $this->log->debug("Processing request");
     list ($reqCxnId, $reqData) = Message::decodeCxn02Aes($this->cxnStore, $blob);
     $cxn = $this->cxnStore->getByCxnId($reqCxnId);
+    $this->log->debug('Looked up cxn', array('cxn'=>$cxn));
     Cxn::validate($cxn);
     list ($entity, $action, $params) = $reqData;
 
+    $this->log->debug('Decoded API', array('reqData'=>$reqData));
     $respData = call_user_func($this->router, $cxn, $entity, $action, $params);
+    $this->log->debug('Formed response', array('respData'=>$respData));
 
     $tuple = array(
       array(), //headers
@@ -74,6 +81,20 @@ class ApiServer {
    */
   public function setRouter($router) {
     $this->router = $router;
+  }
+
+  /**
+   * @return \Psr\Log\LoggerInterface
+   */
+  public function getLog() {
+    return $this->log;
+  }
+
+  /**
+   * @param \Psr\Log\LoggerInterface $log
+   */
+  public function setLog($log) {
+    $this->log = $log;
   }
 
 }
