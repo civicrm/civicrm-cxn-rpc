@@ -37,7 +37,7 @@ class Constants {
 
   const APP_DURATION = '+1 year';
 
-  const AES_CHARS = 32; // todo: verify
+  const AES_BYTES = 32; // 32 bytes = 256 bits
 
   const CXN_ID_CHARS = 16;
 

@@ -59,7 +59,7 @@ class RegistrationClient {
     if (!$cxn) {
       $cxn = array(
         'cxnId' => Cxn::createId(),
-        'secret' => Message::createAes256(),
+        'secret' => Message::createSecret(),
         'appId' => $appMeta['appId'],
       );
     }
