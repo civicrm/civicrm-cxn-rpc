@@ -93,6 +93,9 @@ class RegistrationServer extends Agent {
         $respData = call_user_func(array($this, $func), $reqData['cxn'], $reqData['params']);
       }
     }
+    $this->log->info('Responding', array(
+      $cxn['cxnId'], $cxn['secret'], $respData
+    ));
     return new StdMessage($cxn['cxnId'], $cxn['secret'], $respData);
   }
 
@@ -108,6 +111,7 @@ class RegistrationServer extends Agent {
     foreach ($headers as $n => $v) {
       header("$n: $v");
     }
+    echo $blob;
     exit();
   }
 
@@ -130,6 +134,7 @@ class RegistrationServer extends Agent {
       $this->cxnStore->add($cxn);
       return array(
         'is_error' => 0,
+        'cxn_id' => $cxn['cxnId'],
       );
     }
     else {
@@ -160,6 +165,7 @@ class RegistrationServer extends Agent {
       ));
       return array(
         'is_error' => 0,
+        'cxn_id' => $cxn['cxnId'],
       );
     }
     elseif ($storedCxn['secret'] == $cxn['secret']) {
@@ -169,6 +175,7 @@ class RegistrationServer extends Agent {
       $this->cxnStore->remove($cxn['cxnId']);
       return array(
         'is_error' => 0,
+        'cxn_id' => $cxn['cxnId'],
       );
     }
     else {

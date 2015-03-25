@@ -35,8 +35,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
       $test->assertEquals('http://app-a.com/cxn', $url);
       return $regServer->handle($blob)->toHttp();
     }));
-    list($cxnId, $status) = $regClient->register($appMeta, $siteCxnStore);
-    $this->assertTrue($status);
+    list($cxnId, $regResponse) = $regClient->register($appMeta, $siteCxnStore);
+    $this->assertEquals(0, $regResponse['is_error']);
 
     $siteCxn = $siteCxnStore->getByCxnId($cxnId);
     $this->assertEquals($siteCxn['appUrl'], 'http://app-a.com/cxn');
@@ -64,7 +64,8 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(array('message' => 'unrecognized action'), $apiClient->call('Foo', 'bar', array()));
 
     // The site unregisters.
-    $regClient->unregister($appMeta);
+    list($unregCxnId, $unregResponse) = $regClient->unregister($appMeta);
+    $this->assertEquals(0, $unregResponse['is_error']);
     $this->assertNull($siteCxnStore->getByCxnId($cxnId));
     $this->assertNull($appCxnStore->getByCxnId($cxnId));
   }

@@ -2,6 +2,7 @@
 namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\CxnException;
+use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
@@ -65,7 +66,7 @@ class RegistrationClient extends Agent {
       'appId' => $cxn['appId'],
       'appUrl' => $cxn['appUrl'],
     ));
-    return array($cxn['cxnId'], $success);
+    return array($cxn['cxnId'], $respData);
   }
 
   /**
@@ -73,10 +74,13 @@ class RegistrationClient extends Agent {
    * @return array
    *   Array($cxnId, $isOk).
    */
-  public function unregister($appMeta) {
+  public function unregister($appMeta, $force = FALSE) {
     $cxn = $this->cxnStore->getByAppId($appMeta['appId']);
     if (!$cxn) {
-      return array(NULL, NULL);
+      return array(NULL, array(
+        'is_error' => 1,
+        'error_message' => 'Unrecognized appId',
+      ));
     }
 
     $this->log->info('Unregister cxnId={cxnId} ({appId}, {appUrl})', array(
@@ -91,19 +95,23 @@ class RegistrationClient extends Agent {
         CA::validate($this->caCert, $appMeta['appCert']);
       }
       list($respCode, $respData) = $this->doCall($appMeta, 'Cxn', 'unregister', array(), $cxn);
+      $success = $respCode == 200 && is_array($respData) && $respData['is_error'] == 0;
     }
-    catch (Exception $e2) {
+    catch (\Exception $e2) {
       // simulate try..finally..
       $e = $e2;
+      $success = FALSE;
     }
 
-    $this->cxnStore->remove($cxn['cxnId']);
+    if ($success || $force) {
+      $this->cxnStore->remove($cxn['cxnId']);
+    }
 
     if ($e) {
       throw $e;
     }
 
-    return array($cxn['cxnId'], $respCode == 200 && $respData['is_error'] == 0);
+    return array($cxn['cxnId'], $respData);
   }
 
   /**
@@ -142,8 +150,18 @@ class RegistrationClient extends Agent {
     ));
 
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['appUrl'], $req->encode());
-    $respMessage = $this->decode(array(StdMessage::NAME, InsecureMessage::NAME), $respCiphertext);
-    if ($respMessage instanceof InsecureMessage) {
+    $respMessage = $this->decode(array(StdMessage::NAME, InsecureMessage::NAME, GarbledMessage::NAME), $respCiphertext);
+    if ($respMessage instanceof GarbledMessage) {
+      return array(
+        $respCode,
+        array(
+          'is_error' => 1,
+          'error_message' => 'Received garbled message',
+          'original_message' => $respMessage->getData(),
+        ),
+      );
+    }
+    elseif ($respMessage instanceof InsecureMessage) {
       return array(
         $respCode,
         array(

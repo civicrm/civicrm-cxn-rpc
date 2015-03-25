@@ -3,6 +3,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\AppStore\SingletonAppStore;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
+use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
@@ -44,7 +45,12 @@ class Agent {
 
     list($prefix) = explode(Constants::PROTOCOL_DELIM, substr($blob, 0, $prefixLen + 1));
     if (!in_array($prefix, $formats)) {
-      throw new InvalidMessageException("Unexpected message type.");
+      if (in_array(GarbledMessage::NAME, $formats)) {
+        return GarbledMessage::decode($blob);
+      }
+      else {
+        throw new InvalidMessageException("Unexpected message type.");
+      }
     }
 
     switch ($prefix) {
@@ -58,7 +64,7 @@ class Agent {
         return RegistrationMessage::decode($this->appStore, $blob);
 
       default:
-        throw new InvalidMessageException("Unrecognized message type");
+        throw new InvalidMessageException("Unrecognized message type.");
     }
   }
 
