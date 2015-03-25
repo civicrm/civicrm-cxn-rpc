@@ -9,7 +9,7 @@ class AppMeta {
    * @return string
    */
   public static function createId() {
-    return 'app:' . bin2hex(crypt_random_string(Constants::APP_ID_CHARS));
+    return 'app:' . BinHex::bin2hex(crypt_random_string(Constants::APP_ID_CHARS));
   }
 
   public static function validate($appMeta) {
