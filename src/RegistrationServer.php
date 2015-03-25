@@ -8,16 +8,10 @@ use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
-class RegistrationServer {
+class RegistrationServer extends Agent {
 
   protected $appMeta;
   protected $keyPair;
-  protected $cxnStore;
-
-  /**
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $log;
 
   /**
    * @param array $appMeta
@@ -124,20 +118,6 @@ class RegistrationServer {
    */
   public function getKeyPair() {
     return $this->keyPair;
-  }
-
-  /**
-   * @return \Psr\Log\LoggerInterface
-   */
-  public function getLog() {
-    return $this->log;
-  }
-
-  /**
-   * @param \Psr\Log\LoggerInterface $log
-   */
-  public function setLog($log) {
-    $this->log = $log;
   }
 
   /**

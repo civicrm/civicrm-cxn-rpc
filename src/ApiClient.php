@@ -4,16 +4,11 @@ namespace Civi\Cxn\Rpc;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
-class ApiClient {
+class ApiClient extends Agent {
   /**
    * @var array
    */
   protected $appMeta;
-
-  /**
-   * @var CxnStore\CxnStoreInterface
-   */
-  protected $cxnStore;
 
   /**
    * @var string
@@ -24,11 +19,6 @@ class ApiClient {
    * @var Http\HttpInterface
    */
   protected $http;
-
-  /**
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $log;
 
   /**
    * @param array $appMeta
@@ -74,20 +64,6 @@ class ApiClient {
    */
   public function setHttp($http) {
     $this->http = $http;
-  }
-
-  /**
-   * @return \Psr\Log\LoggerInterface
-   */
-  public function getLog() {
-    return $this->log;
-  }
-
-  /**
-   * @param \Psr\Log\LoggerInterface $log
-   */
-  public function setLog($log) {
-    $this->log = $log;
   }
 
 }

@@ -4,22 +4,12 @@ namespace Civi\Cxn\Rpc;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
-class ApiServer {
-
-  /**
-   * @var CxnStore\CxnStoreInterface
-   */
-  protected $cxnStore;
+class ApiServer extends Agent {
 
   /**
    * @var callable
    */
   protected $router;
-
-  /**
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $log;
 
   /**
    * @param CxnStore\CxnStoreInterface $cxnStore
@@ -75,20 +65,6 @@ class ApiServer {
    */
   public function setRouter($router) {
     $this->router = $router;
-  }
-
-  /**
-   * @return \Psr\Log\LoggerInterface
-   */
-  public function getLog() {
-    return $this->log;
-  }
-
-  /**
-   * @param \Psr\Log\LoggerInterface $log
-   */
-  public function setLog($log) {
-    $this->log = $log;
   }
 
 }

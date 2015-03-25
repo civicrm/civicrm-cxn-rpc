@@ -5,16 +5,7 @@ use Civi\Cxn\Rpc\Exception\CxnException;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Psr\Log\NullLogger;
 
-class RegistrationClient {
-  /**
-   * @var string
-   */
-  protected $caCert;
-
-  /**
-   * @var CxnStore\CxnStoreInterface
-   */
-  protected $cxnStore;
+class RegistrationClient extends Agent {
 
   /**
    * @var string
@@ -25,11 +16,6 @@ class RegistrationClient {
    * @var Http\HttpInterface
    */
   protected $http;
-
-  /**
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $log;
 
   /**
    * @param string $caCert
@@ -132,19 +118,6 @@ class RegistrationClient {
     $this->http = $http;
   }
 
-  /**
-   * @return \Psr\Log\LoggerInterface
-   */
-  public function getLog() {
-    return $this->log;
-  }
-
-  /**
-   * @param \Psr\Log\LoggerInterface $log
-   */
-  public function setLog($log) {
-    $this->log = $log;
-  }
 
   /**
    * @param $appMeta
