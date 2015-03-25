@@ -98,7 +98,9 @@ class RegistrationClient {
 
     $e = NULL;
     try {
-      CA::validate($this->caCert, $appMeta['appCert']);
+      if ($this->caCert) {
+        CA::validate($this->caCert, $appMeta['appCert']);
+      }
       list($respCode, $respData) = $this->doCall($appMeta, 'Cxn', 'unregister', array(), $cxn);
     }
     catch (Exception $e2) {
