@@ -31,9 +31,7 @@ class Constants {
 
   const MIME_TYPE = 'application/x-civi-cxn';
 
-  const PROTOCOL_VERSION = 'CXN-0.1';
-
-  const PROTOCOL_DELIM = "";
+  const PROTOCOL_DELIM = ""; // ^A, not visible in some editors
 
   const CA_DURATION = '+10 years';
 
