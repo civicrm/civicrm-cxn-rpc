@@ -2,13 +2,14 @@
 namespace Civi\Cxn\Rpc\Message;
 
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
-use Civi\Cxn\Rpc\Exception\UserErrorException;
+use Civi\Cxn\Rpc\Message;
+use Civi\Cxn\Rpc\UserError;
 use Civi\Cxn\Rpc\CxnStore\CxnStoreInterface;
 use Civi\Cxn\Rpc\BinHex;
 use Civi\Cxn\Rpc\Constants;
 use Civi\Cxn\Rpc\Time;
 
-class StdMessage {
+class StdMessage extends Message {
   const NAME = 'CXN-0.2-AES-CBC-HMAC';
 
   /**
@@ -19,22 +20,34 @@ class StdMessage {
     return base64_encode(crypt_random_string(Constants::AES_BYTES));
   }
 
+  protected $cxnId;
+  protected $secret;
+
   /**
    * @param string $cxnId
    * @param string $secret
    *   Base64-encoded secret.
+   * @param int $code
    * @param mixed $data
    *   Serializable data.
-   * @return string
-   *   Ciphertext.
    */
-  public static function encode($cxnId, $secret, $data) {
+  public function __construct($cxnId, $secret, $data) {
+    parent::__construct($data);
+    $this->cxnId = $cxnId;
+    $this->secret = $secret;
+  }
+
+  /**
+   * @return string
+   * @throws InvalidMessageException
+   */
+  public function encode() {
     $envelope = array(
       'ttl' => Time::getTime() + Constants::REQUEST_TTL,
-      'r' => json_encode($data),
+      'r' => json_encode($this->data),
     );
 
-    $keys = self::deriveAesKeys($secret);
+    $keys = self::deriveAesKeys($this->secret);
 
     $cipher = new \Crypt_AES(CRYPT_AES_MODE_CBC);
     $cipher->setKeyLength(Constants::AES_BYTES);
@@ -42,7 +55,7 @@ class StdMessage {
     $ciphertext = $cipher->encrypt(json_encode($envelope));
 
     return self::NAME
-    . Constants::PROTOCOL_DELIM . $cxnId
+    . Constants::PROTOCOL_DELIM . $this->cxnId
     . Constants::PROTOCOL_DELIM . hash_hmac('sha256', $ciphertext, $keys['auth'])
     . Constants::PROTOCOL_DELIM . $ciphertext;
   }
@@ -50,7 +63,7 @@ class StdMessage {
   /**
    * @param CxnStoreInterface $cxnStore
    *   A repository that contains shared secrets.
-   * @param string $wireCiphertext
+   * @param string $message
    *   Ciphertext.
    * @return array
    *   Array($cxnId,$data).
@@ -73,7 +86,7 @@ class StdMessage {
       throw new InvalidMessageException("Hash does not match ciphertext");
     }
 
-    $plaintext = UserErrorException::adapt(function () use ($parsedCiphertext, $cxn, $keys) {
+    $plaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($parsedCiphertext, $cxn, $keys) {
       $cipher = new \Crypt_AES(CRYPT_AES_MODE_CBC);
       $cipher->setKeyLength(Constants::AES_BYTES);
       $cipher->setKey($keys['enc']);

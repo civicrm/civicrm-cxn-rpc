@@ -3,6 +3,8 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\CxnException;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
+use Civi\Cxn\Rpc\Message\InsecureMessage;
+use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
 class RegistrationServer {
@@ -43,17 +45,31 @@ class RegistrationServer {
    *
    * @param string $blob
    *   POST'ed ciphertext.
-   * @return array
-   *   array($headers, $blob, $code)
+   * @return Message
    */
   public function handle($blob) {
-    $reqData = Message\RegistrationMessage::decode($this->appMeta['appId'], $this->keyPair['privatekey'], $blob);
+    try {
+      $reqData = Message\RegistrationMessage::decode($this->appMeta['appId'], $this->keyPair['privatekey'], $blob);
+    }
+    catch (InvalidMessageException $e) {
+      $this->log->debug('Received invalid message', array(
+        'exception' => $e,
+      ));
+      $resp = new InsecureMessage(array('is_error' => 1, 'error_message' => 'Invalid message coding'));
+      return $resp->setCode(400);
+    }
 
     $this->log->debug('Received registration request', array(
       'reqData' => $reqData,
     ));
     $cxn = $reqData['cxn'];
-    Cxn::validate($cxn);
+    //$validation = Cxn::getValidationMessages($cxn);
+    //if (!empty($validation)) {
+    //  return array(
+    //    array(), //headers
+    //
+    //  );
+    //}
 
     $respData = array(
       'is_error' => 1,
@@ -66,12 +82,7 @@ class RegistrationServer {
         $respData = call_user_func(array($this, $func), $reqData['cxn'], $reqData['params']);
       }
     }
-    $tuple = array(
-      array(), //headers
-      Message\StdMessage::encode($cxn['cxnId'], $cxn['secret'], $respData),
-      200, // code
-    );
-    return $tuple;
+    return new StdMessage($cxn['cxnId'], $cxn['secret'], 200, $respData);
   }
 
   /**
@@ -81,7 +92,7 @@ class RegistrationServer {
    *   POST'ed ciphertext.
    */
   public function handleAndRespond($blob) {
-    list ($headers, $blob, $code) = $this->handle($blob);
+    list ($headers, $blob, $code) = $this->handle($blob)->toHttp();
     header("X-PHP-Response-Code: $code", TRUE, $code);
     foreach ($headers as $n => $v) {
       header("$n: $v");

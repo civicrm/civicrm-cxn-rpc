@@ -1,17 +1,17 @@
 <?php
-namespace Civi\Cxn\Rpc\Exception;
+namespace Civi\Cxn\Rpc;
 
 /**
- * Class UserErrorException
+ * Class UserError
  *
  * phpseclib reports errors via user_error(). When running as a server, we
  * often want to catch these so that we can send a well-formed response.
  *
- * @package Civi\Cxn\Rpc\Exception
+ * @package Civi\Cxn\Rpc
  */
-class UserErrorException extends CxnException {
+class UserError {
 
-  public static function adapt($callable) {
+  public static function adapt($class, $callable) {
     $errors = array();
 
     set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcontext) use (&$errors) {
@@ -42,7 +42,7 @@ class UserErrorException extends CxnException {
       foreach ($errors as $error) {
         $msg .= $error[1] . "\n";
       }
-      throw new UserErrorException($msg);
+      throw new $class($msg);
     }
 
     return $result;

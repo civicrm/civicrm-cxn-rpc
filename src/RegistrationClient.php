@@ -2,6 +2,7 @@
 namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\CxnException;
+use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Psr\Log\NullLogger;
 
 class RegistrationClient {
@@ -158,13 +159,14 @@ class RegistrationClient {
     $appCert = new \File_X509();
     $appCert->loadX509($appMeta['appCert']);
 
-    $reqCiphertext = Message\RegistrationMessage::encode($cxn['appId'], $appCert->getPublicKey(), array(
+    $req = new RegistrationMessage($cxn['appId'], $appCert->getPublicKey(), array(
       'cxn' => $cxn,
       'entity' => $entity,
       'action' => $action,
       'params' => $params,
     ));
-    list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['appUrl'], $reqCiphertext);
+
+    list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['appUrl'], $req->encode());
     list ($respCxnId, $respData) = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
     if ($respCxnId != $cxn['cxnId']) {
       // Tsk, tsk, Mallory!

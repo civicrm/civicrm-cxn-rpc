@@ -2,29 +2,36 @@
 namespace Civi\Cxn\Rpc\Message;
 
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
-use Civi\Cxn\Rpc\Exception\UserErrorException;
+use Civi\Cxn\Rpc\Message;
+use Civi\Cxn\Rpc\UserError;
 use Civi\Cxn\Rpc\Constants;
 use Civi\Cxn\Rpc\Time;
 
-class RegistrationMessage {
+class RegistrationMessage extends Message {
 
   const NAME = 'CXN-0.2-RSA';
 
+  protected $appId;
+  protected $appPubKey;
+
+  public function __construct($appId, $appPubKey, $data) {
+    parent::__construct($data);
+    $this->appId = $appId;
+    $this->appPubKey = $appPubKey;
+  }
+
   /**
-   * @param string $appId
-   * @param string $appPubKey
-   * @param array $data
    * @return string
    *   Ciphertext.
    */
-  public static function encode($appId, $appPubKey, $data) {
+  public function encode() {
     $envelope = array(
       'ttl' => Time::getTime() + Constants::REQUEST_TTL,
-      'r' => json_encode($data),
+      'r' => json_encode($this->data),
     );
     return self::NAME . Constants::PROTOCOL_DELIM
-    . $appId . Constants::PROTOCOL_DELIM
-    . self::getRsa($appPubKey, 'public')->encrypt(json_encode($envelope));
+    . $this->appId . Constants::PROTOCOL_DELIM
+    . self::getRsa($this->appPubKey, 'public')->encrypt(json_encode($envelope));
   }
 
   /**
@@ -35,22 +42,26 @@ class RegistrationMessage {
    *   Decoded data.
    */
   public static function decode($appId, $appPrivKey, $blob) {
-    list ($wireProt, $wireAppId, $ciphertext) = explode(Constants::PROTOCOL_DELIM, $blob, 3);
+    $parts = explode(Constants::PROTOCOL_DELIM, $blob, 3);
+    if (count($parts) != 3) {
+      throw new InvalidMessageException('Invalid message: insufficient parameters');
+    }
+    list ($wireProt, $wireAppId, $ciphertext) = $parts;
     if ($wireProt != self::NAME) {
-      throw new InvalidMessageException('Incorrect coding. Expected:' . self::NAME);
+      throw new InvalidMessageException('Invalid message: wrong protocol name');
     }
     if ($wireAppId != $appId) {
       throw new InvalidMessageException('Received message intended for incorrect app.');
     }
-    $plaintext = UserErrorException::adapt(function () use ($ciphertext, $appPrivKey) {
+    $plaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($ciphertext, $appPrivKey) {
       return self::getRsa($appPrivKey, 'private')->decrypt($ciphertext);
     });
     if (empty($plaintext)) {
-      throw new InvalidMessageException("Invalid request: decryption produced empty message");
+      throw new InvalidMessageException("Invalid message: decryption produced empty message");
     }
     $envelope = json_decode($plaintext, TRUE);
     if (Time::getTime() > $envelope['ttl']) {
-      throw new InvalidMessageException("Invalid request: expired");
+      throw new InvalidMessageException("Invalid message: expired");
     }
     return json_decode($envelope['r'], TRUE);
   }

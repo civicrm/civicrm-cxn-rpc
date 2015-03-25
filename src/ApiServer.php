@@ -1,6 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
 class ApiServer {
@@ -21,7 +22,6 @@ class ApiServer {
   protected $log;
 
   /**
-   * @param array $appMeta
    * @param CxnStore\CxnStoreInterface $cxnStore
    */
   public function __construct($cxnStore, $router = NULL) {
@@ -37,27 +37,21 @@ class ApiServer {
    *
    * @param string $blob
    *   POST'ed ciphertext.
-   * @return array
-   *   Array($headers, $blob, $code).
+   * @return Message
    */
   public function handle($blob) {
     $this->log->debug("Processing request");
     list ($reqCxnId, $reqData) = Message\StdMessage::decode($this->cxnStore, $blob);
     $cxn = $this->cxnStore->getByCxnId($reqCxnId);
-    $this->log->debug('Looked up cxn', array('cxn'=>$cxn));
+    $this->log->debug('Looked up cxn', array('cxn' => $cxn));
     Cxn::validate($cxn);
     list ($entity, $action, $params) = $reqData;
 
-    $this->log->debug('Decoded API', array('reqData'=>$reqData));
+    $this->log->debug('Decoded API', array('reqData' => $reqData));
     $respData = call_user_func($this->router, $cxn, $entity, $action, $params);
-    $this->log->debug('Formed response', array('respData'=>$respData));
+    $this->log->debug('Formed response', array('respData' => $respData));
 
-    $tuple = array(
-      array(), //headers
-      Message\StdMessage::encode($reqCxnId, $cxn['secret'], $respData),
-      200, // code
-    );
-    return $tuple;
+    return new StdMessage($reqCxnId, $cxn['secret'], $respData);
   }
 
   /**
@@ -67,7 +61,7 @@ class ApiServer {
    *   POST'ed ciphertext.
    */
   public function handleAndRespond($blob) {
-    list ($headers, $blob, $code) = $this->handle($blob);
+    list ($headers, $blob, $code) = $this->handle($blob)->toHttp();
     header("X-PHP-Response-Code: $code", TRUE, $code);
     foreach ($headers as $n => $v) {
       header("$n: $v");

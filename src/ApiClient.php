@@ -1,6 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
 class ApiClient {
@@ -48,9 +49,9 @@ class ApiClient {
       'cxnId' => $this->cxnId,
     ));
     $cxn = $this->cxnStore->getByCxnId($this->cxnId);
-    $reqCiphertext = Message\StdMessage::encode($cxn['cxnId'], $cxn['secret'],
+    $req = new StdMessage($cxn['cxnId'], $cxn['secret'],
       array($entity, $action, $params));
-    list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $reqCiphertext, array(
+    list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $req->encode(), array(
       'Content-type' => Constants::MIME_TYPE,
     ));
     list ($respCxnId, $respData) = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
