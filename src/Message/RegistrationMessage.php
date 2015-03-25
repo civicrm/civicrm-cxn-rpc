@@ -2,6 +2,7 @@
 namespace Civi\Cxn\Rpc\Message;
 
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
+use Civi\Cxn\Rpc\AppStore\AppStoreInterface;
 use Civi\Cxn\Rpc\Message;
 use Civi\Cxn\Rpc\UserError;
 use Civi\Cxn\Rpc\Constants;
@@ -35,13 +36,12 @@ class RegistrationMessage extends Message {
   }
 
   /**
-   * @param $appId
-   * @param $appPrivKey
-   * @param $blob
+   * @param AppStoreInterface $appStore
+   * @param string $blob
    * @return array
    *   Decoded data.
    */
-  public static function decode($appId, $appPrivKey, $blob) {
+  public static function decode($appStore, $blob) {
     $parts = explode(Constants::PROTOCOL_DELIM, $blob, 3);
     if (count($parts) != 3) {
       throw new InvalidMessageException('Invalid message: insufficient parameters');
@@ -50,8 +50,9 @@ class RegistrationMessage extends Message {
     if ($wireProt != self::NAME) {
       throw new InvalidMessageException('Invalid message: wrong protocol name');
     }
-    if ($wireAppId != $appId) {
-      throw new InvalidMessageException('Received message intended for incorrect app.');
+    $appPrivKey = $appStore->getPrivateKey($wireAppId);
+    if (!$appPrivKey) {
+      throw new InvalidMessageException('Received message intended for unknown app.');
     }
     $plaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($ciphertext, $appPrivKey) {
       return self::getRsa($appPrivKey, 'private')->decrypt($ciphertext);

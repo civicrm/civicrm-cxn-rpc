@@ -1,6 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\AppStore\SingletonAppStore;
 use Civi\Cxn\Rpc\Exception\CxnException;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
@@ -10,16 +11,15 @@ use Psr\Log\NullLogger;
 
 class RegistrationServer extends Agent {
 
-  protected $appMeta;
-  protected $keyPair;
-
   /**
    * @param array $appMeta
    * @param array $keyPair
    * @param CxnStore\CxnStoreInterface $cxnStore
+   *
+   * TODO Change contract, passing in AppStoreInterface instead of appMeta/keyPair.
+   * This will allow hosting multiple apps in the same endpoint.
    */
   public function __construct($appMeta, $keyPair, $cxnStore) {
-    AppMeta::validate($appMeta);
     if (empty($keyPair)) {
       throw new CxnException("Missing keyPair");
     }
@@ -27,10 +27,9 @@ class RegistrationServer extends Agent {
       throw new CxnException("Missing cxnStore");
     }
 
-    $this->appMeta = $appMeta;
-    $this->keyPair = $keyPair;
     $this->cxnStore = $cxnStore;
     $this->log = new NullLogger();
+    $this->appStore = new SingletonAppStore($appMeta['appId'], $appMeta, $keyPair['privatekey'], $keyPair['publickey']);
   }
 
   /**
@@ -44,14 +43,20 @@ class RegistrationServer extends Agent {
    */
   public function handle($blob) {
     try {
-      $messages = new Messages($this->appMeta['appId'], $this->keyPair['privatekey'], $this->cxnStore);
-      $reqData = $messages->decode(array(RegistrationMessage::NAME), $blob);
+      $reqData = $this->decode(RegistrationMessage::NAME, $blob);
     }
     catch (InvalidMessageException $e) {
       $this->log->debug('Received invalid message', array(
         'exception' => $e,
       ));
-      $resp = new InsecureMessage(array('is_error' => 1, 'error_message' => 'Invalid message coding'));
+      $resp = new InsecureMessage(array(
+        'is_error' => 1,
+        'error_message' => 'Invalid message coding',
+        array(
+          $e->getMessage(),
+          $e->getTraceAsString(),
+        ),
+      ));
       return $resp->setCode(400);
     }
 
@@ -95,29 +100,7 @@ class RegistrationServer extends Agent {
     foreach ($headers as $n => $v) {
       header("$n: $v");
     }
-    echo $blob;
     exit();
-  }
-
-  /**
-   * @return array
-   */
-  public function getAppMeta() {
-    return $this->appMeta;
-  }
-
-  /**
-   * @return CxnStore\CxnStoreInterface
-   */
-  public function getCxnStore() {
-    return $this->cxnStore;
-  }
-
-  /**
-   * @return array
-   */
-  public function getKeyPair() {
-    return $this->keyPair;
   }
 
   /**

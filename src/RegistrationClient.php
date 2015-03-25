@@ -2,7 +2,9 @@
 namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\CxnException;
+use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
+use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
 class RegistrationClient extends Agent {
@@ -140,7 +142,17 @@ class RegistrationClient extends Agent {
     ));
 
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['appUrl'], $req->encode());
-    $respMessage = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
+    $respMessage = $this->decode(array(StdMessage::NAME, InsecureMessage::NAME), $respCiphertext);
+    if ($respMessage instanceof InsecureMessage) {
+      return array(
+        $respCode,
+        array(
+          'is_error' => 1,
+          'error_message' => 'Received insecure error message',
+          'original_message' => $respMessage->getData(),
+        ),
+      );
+    }
     if ($respMessage->getCxnId() != $cxn['cxnId']) {
       // Tsk, tsk, Mallory!
       throw new \RuntimeException('Received response from incorrect connection.');
