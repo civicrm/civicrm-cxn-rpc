@@ -29,6 +29,7 @@ class Cxn {
 
     if (!is_array($cxn)) {
       $errors['appMeta'] = 'Not an array';
+      return $errors;
     }
 
     // cxnId is completely arbitrary.
