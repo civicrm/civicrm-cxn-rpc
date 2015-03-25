@@ -7,6 +7,10 @@ use Civi\Cxn\Rpc\Exception\UserErrorException;
 
 class Message {
 
+  public static function createAes256() {
+    return base64_encode(crypt_random_string(Constants::AES_CHARS));
+  }
+
   protected static function getRsa($key, $type) {
     $rsa = new \Crypt_RSA();
     $rsa->loadKey($key);

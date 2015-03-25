@@ -5,6 +5,13 @@ use Civi\Cxn\Rpc\Exception\CxnException;
 
 class AppMeta {
 
+  /**
+   * @return string
+   */
+  public static function createId() {
+    return 'app:' . bin2hex(crypt_random_string(Constants::APP_ID_CHARS));
+  }
+
   public static function validate($appMeta) {
     $errors = self::getValidationMessages($appMeta);
     if (!empty($errors)) {

@@ -5,6 +5,13 @@ use Civi\Cxn\Rpc\Exception\CxnException;
 
 class Cxn {
 
+  /**
+   * @return string
+   */
+  public static function createId() {
+    return 'cxn:' . bin2hex(crypt_random_string(Constants::CXN_ID_CHARS));
+  }
+
   public static function validate($cxn) {
     $errors = self::getValidationMessages($cxn);
     if (!empty($errors)) {
@@ -24,6 +31,8 @@ class Cxn {
       $errors['appMeta'] = 'Not an array';
     }
 
+    // cxnId is completely arbitrary.
+    // Secret is base64-encoded AES-256 key (32 bytes, ~45 base64 char).
     foreach (array('cxnId', 'secret', 'appId') as $key) {
       if (empty($cxn[$key])) {
         $errors[$key] = 'Required field';

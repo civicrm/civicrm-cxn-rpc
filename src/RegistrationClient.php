@@ -58,8 +58,8 @@ class RegistrationClient {
     $cxn = $this->cxnStore->getByAppId($appMeta['appId']);
     if (!$cxn) {
       $cxn = array(
-        'cxnId' => bin2hex(crypt_random_string(Constants::CXN_ID_CHARS)),
-        'secret' => base64_encode(crypt_random_string(Constants::AES_CHARS)),
+        'cxnId' => Cxn::createId(),
+        'secret' => Message::createAes256(),
         'appId' => $appMeta['appId'],
       );
     }
