@@ -41,17 +41,17 @@ class ApiServer {
    */
   public function handle($blob) {
     $this->log->debug("Processing request");
-    list ($reqCxnId, $reqData) = Message\StdMessage::decode($this->cxnStore, $blob);
-    $cxn = $this->cxnStore->getByCxnId($reqCxnId);
+    $reqMessage = Message\StdMessage::decode($this->cxnStore, $blob);
+    $cxn = $this->cxnStore->getByCxnId($reqMessage->getCxnId());
     $this->log->debug('Looked up cxn', array('cxn' => $cxn));
     Cxn::validate($cxn);
-    list ($entity, $action, $params) = $reqData;
+    list ($entity, $action, $params) = $reqMessage->getData();
 
-    $this->log->debug('Decoded API', array('reqData' => $reqData));
+    $this->log->debug('Decoded API', array('reqData' => $reqMessage->getData()));
     $respData = call_user_func($this->router, $cxn, $entity, $action, $params);
     $this->log->debug('Formed response', array('respData' => $respData));
 
-    return new StdMessage($reqCxnId, $cxn['secret'], $respData);
+    return new StdMessage($reqMessage->getCxnId(), $cxn['secret'], $respData);
   }
 
   /**

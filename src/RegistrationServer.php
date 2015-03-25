@@ -4,6 +4,7 @@ namespace Civi\Cxn\Rpc;
 use Civi\Cxn\Rpc\Exception\CxnException;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
+use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
@@ -49,7 +50,8 @@ class RegistrationServer {
    */
   public function handle($blob) {
     try {
-      $reqData = Message\RegistrationMessage::decode($this->appMeta['appId'], $this->keyPair['privatekey'], $blob);
+      $messages = new Messages($this->appMeta['appId'], $this->keyPair['privatekey'], $this->cxnStore);
+      $reqData = $messages->decode(array(RegistrationMessage::NAME), $blob);
     }
     catch (InvalidMessageException $e) {
       $this->log->debug('Received invalid message', array(
@@ -63,13 +65,15 @@ class RegistrationServer {
       'reqData' => $reqData,
     ));
     $cxn = $reqData['cxn'];
-    //$validation = Cxn::getValidationMessages($cxn);
-    //if (!empty($validation)) {
-    //  return array(
-    //    array(), //headers
-    //
-    //  );
-    //}
+    $validation = Cxn::getValidationMessages($cxn);
+    if (!empty($validation)) {
+      // $cxn is not valid, so we can't encode it use it for encoding.
+      $resp = new InsecureMessage(array(
+        'is_error' => 1,
+        'error_message' => 'Invalid cxn details: ' . implode(', ', array_keys($validation)),
+      ));
+      return $resp->setCode(400);
+    }
 
     $respData = array(
       'is_error' => 1,
@@ -82,7 +86,7 @@ class RegistrationServer {
         $respData = call_user_func(array($this, $func), $reqData['cxn'], $reqData['params']);
       }
     }
-    return new StdMessage($cxn['cxnId'], $cxn['secret'], 200, $respData);
+    return new StdMessage($cxn['cxnId'], $cxn['secret'], $respData);
   }
 
   /**

@@ -65,8 +65,7 @@ class StdMessage extends Message {
    *   A repository that contains shared secrets.
    * @param string $message
    *   Ciphertext.
-   * @return array
-   *   Array($cxnId,$data).
+   * @return static
    * @throws InvalidMessageException
    */
   public static function decode($cxnStore, $message) {
@@ -96,7 +95,8 @@ class StdMessage extends Message {
     if (Time::getTime() > $envelope['ttl']) {
       throw new InvalidMessageException("Invalid message: expired");
     }
-    return array($parsedCxnId, json_decode($envelope['r'], TRUE));
+
+    return new StdMessage($parsedCxnId, $cxn['secret'], json_decode($envelope['r'], TRUE));
   }
 
   /**
@@ -144,6 +144,34 @@ class StdMessage extends Message {
       $status |= ord($a[$i]) ^ ord($b[$i]);
     }
     return $status === 0;
+  }
+
+  /**
+   * @return string
+   */
+  public function getCxnId() {
+    return $this->cxnId;
+  }
+
+  /**
+   * @param string $cxnId
+   */
+  public function setCxnId($cxnId) {
+    $this->cxnId = $cxnId;
+  }
+
+  /**
+   * @return string
+   */
+  public function getSecret() {
+    return $this->secret;
+  }
+
+  /**
+   * @param string $secret
+   */
+  public function setSecret($secret) {
+    $this->secret = $secret;
   }
 
 }

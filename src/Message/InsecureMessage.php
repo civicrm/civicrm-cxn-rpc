@@ -17,7 +17,7 @@ class InsecureMessage extends Message {
 
   /**
    * @param string $message
-   * @return array
+   * @return InsecureMessage
    * @throws InvalidMessageException
    */
   public static function decode($message) {
@@ -29,7 +29,7 @@ class InsecureMessage extends Message {
     if (!$data) {
       throw new InvalidMessageException("Invalid message");
     }
-    return $data;
+    return new InsecureMessage($data);
   }
 
 }

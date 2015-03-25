@@ -54,12 +54,12 @@ class ApiClient {
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $req->encode(), array(
       'Content-type' => Constants::MIME_TYPE,
     ));
-    list ($respCxnId, $respData) = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
-    if ($respCxnId != $cxn['cxnId']) {
+    $respMessage = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
+    if ($respMessage->getCxnId() != $cxn['cxnId']) {
       // Tsk, tsk, Mallory!
       throw new \RuntimeException('Received response from incorrect connection.');
     }
-    return $respData;
+    return $respMessage->getData();
   }
 
   /**

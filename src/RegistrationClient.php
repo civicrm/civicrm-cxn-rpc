@@ -167,12 +167,12 @@ class RegistrationClient {
     ));
 
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['appUrl'], $req->encode());
-    list ($respCxnId, $respData) = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
-    if ($respCxnId != $cxn['cxnId']) {
+    $respMessage = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
+    if ($respMessage->getCxnId() != $cxn['cxnId']) {
       // Tsk, tsk, Mallory!
       throw new \RuntimeException('Received response from incorrect connection.');
     }
-    return array($respCode, $respData);
+    return array($respCode, $respMessage->getData());
   }
 
 }
