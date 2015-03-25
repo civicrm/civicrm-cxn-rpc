@@ -9,6 +9,14 @@ use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
+/**
+ * Class RegistrationServer
+ *
+ * A registration accepts registration messages and updates a list of
+ * active connections.
+ *
+ * @package Civi\Cxn\Rpc
+ */
 class RegistrationServer extends Agent {
 
   /**

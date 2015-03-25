@@ -8,6 +8,14 @@ use Civi\Cxn\Rpc\UserError;
 use Civi\Cxn\Rpc\Constants;
 use Civi\Cxn\Rpc\Time;
 
+/**
+ * Class RegistrationMessage
+ *
+ * A registration message is sent from a site to an app when it wants to
+ * create or update a connection.
+ *
+ * @package Civi\Cxn\Rpc\Message
+ */
 class RegistrationMessage extends Message {
 
   const NAME = 'CXN-0.2-RSA';

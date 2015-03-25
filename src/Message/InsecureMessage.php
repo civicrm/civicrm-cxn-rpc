@@ -5,6 +5,16 @@ use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Constants;
 use Civi\Cxn\Rpc\Message;
 
+/**
+ * Class InsecureMessage
+ *
+ * An insecure message is one that cannot be authenticated. It may be useful
+ * for reporting low-level connection errors (e.g. due to misconfigured
+ * crypto). Clients which receive InsecureMessages should treat them with
+ * suspicion because they can be forged by a man-in-the-middle.
+ *
+ * @package Civi\Cxn\Rpc\Message
+ */
 class InsecureMessage extends Message {
   const NAME = 'CXN-0.2-INSECURE';
 
