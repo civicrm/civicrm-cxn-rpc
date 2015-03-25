@@ -48,12 +48,12 @@ class ApiClient {
       'cxnId' => $this->cxnId,
     ));
     $cxn = $this->cxnStore->getByCxnId($this->cxnId);
-    $reqCiphertext = Message::encodeCxn02Aes($cxn['cxnId'], $cxn['secret'],
+    $reqCiphertext = Message\StdMessage::encode($cxn['cxnId'], $cxn['secret'],
       array($entity, $action, $params));
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $reqCiphertext, array(
       'Content-type' => Constants::MIME_TYPE,
     ));
-    list ($respCxnId, $respData) = Message::decodeCxn02Aes($this->cxnStore, $respCiphertext);
+    list ($respCxnId, $respData) = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
     if ($respCxnId != $cxn['cxnId']) {
       // Tsk, tsk, Mallory!
       throw new \RuntimeException('Received response from incorrect connection.');

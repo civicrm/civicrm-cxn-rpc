@@ -42,7 +42,7 @@ class ApiServer {
    */
   public function handle($blob) {
     $this->log->debug("Processing request");
-    list ($reqCxnId, $reqData) = Message::decodeCxn02Aes($this->cxnStore, $blob);
+    list ($reqCxnId, $reqData) = Message\StdMessage::decode($this->cxnStore, $blob);
     $cxn = $this->cxnStore->getByCxnId($reqCxnId);
     $this->log->debug('Looked up cxn', array('cxn'=>$cxn));
     Cxn::validate($cxn);
@@ -54,7 +54,7 @@ class ApiServer {
 
     $tuple = array(
       array(), //headers
-      Message::encodeCxn02Aes($reqCxnId, $cxn['secret'], $respData),
+      Message\StdMessage::encode($reqCxnId, $cxn['secret'], $respData),
       200, // code
     );
     return $tuple;

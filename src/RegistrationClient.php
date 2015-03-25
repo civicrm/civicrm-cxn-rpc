@@ -59,7 +59,7 @@ class RegistrationClient {
     if (!$cxn) {
       $cxn = array(
         'cxnId' => Cxn::createId(),
-        'secret' => Message::createSecret(),
+        'secret' => Message\StdMessage::createSecret(),
         'appId' => $appMeta['appId'],
       );
     }
@@ -156,14 +156,14 @@ class RegistrationClient {
     $appCert = new \File_X509();
     $appCert->loadX509($appMeta['appCert']);
 
-    $reqCiphertext = Message::encodeCxn02Registration($cxn['appId'], $appCert->getPublicKey(), array(
+    $reqCiphertext = Message\RegistrationMessage::encode($cxn['appId'], $appCert->getPublicKey(), array(
       'cxn' => $cxn,
       'entity' => $entity,
       'action' => $action,
       'params' => $params,
     ));
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['appUrl'], $reqCiphertext);
-    list ($respCxnId, $respData) = Message::decodeCxn02Aes($this->cxnStore, $respCiphertext);
+    list ($respCxnId, $respData) = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
     if ($respCxnId != $cxn['cxnId']) {
       // Tsk, tsk, Mallory!
       throw new \RuntimeException('Received response from incorrect connection.');

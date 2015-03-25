@@ -2,6 +2,7 @@
 namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\CxnException;
+use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Psr\Log\NullLogger;
 
 class RegistrationServer {
@@ -46,7 +47,8 @@ class RegistrationServer {
    *   array($headers, $blob, $code)
    */
   public function handle($blob) {
-    $reqData = Message::decodeCxn02Registration($this->appMeta['appId'], $this->keyPair['privatekey'], $blob);
+    $reqData = Message\RegistrationMessage::decode($this->appMeta['appId'], $this->keyPair['privatekey'], $blob);
+
     $this->log->debug('Received registration request', array(
       'reqData' => $reqData,
     ));
@@ -66,7 +68,7 @@ class RegistrationServer {
     }
     $tuple = array(
       array(), //headers
-      Message::encodeCxn02Aes($cxn['cxnId'], $cxn['secret'], $respData),
+      Message\StdMessage::encode($cxn['cxnId'], $cxn['secret'], $respData),
       200, // code
     );
     return $tuple;
