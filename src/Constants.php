@@ -41,4 +41,22 @@ class Constants {
 
   const CXN_ID_CHARS = 16;
 
+  /**
+   * @return string
+   *   The path to the PEM-encode X.509 certificate of the
+   *   live CiviCRM Certificate Authority.
+   */
+  public static function getCert() {
+    return dirname(__DIR__) . '/certs/CiviRootCA.crt';
+  }
+
+  /**
+   * @return string
+   *   The path to the PEM-encode X.509 certificate of the
+   *   test CiviCRM Certificate Authority.
+   */
+  public static function getTestCert() {
+    return dirname(__DIR__) . '/certs/CiviTestRootCA.crt';
+  }
+
 }
