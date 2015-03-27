@@ -88,17 +88,6 @@ class ApiServer extends Agent {
   }
 
   /**
-   * Parse the ciphertext, process it, send the response, and exit.
-   *
-   * @param string $blob
-   *   POST'ed ciphertext.
-   */
-  public function handleAndRespond($blob) {
-    $this->handle($blob)->send();
-    exit();
-  }
-
-  /**
    * @param callable $router
    */
   public function setRouter($router) {
