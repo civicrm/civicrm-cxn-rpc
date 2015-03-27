@@ -20,9 +20,6 @@ use Civi\Cxn\Rpc\Message;
 class GarbledMessage extends Message {
   const NAME = 'CXN-0.2-GARBLED';
 
-  /**
-   * @return string
-   */
   public function encode() {
     throw new \RuntimeException("Why would you intentionally encode a garbled message this way?");
   }

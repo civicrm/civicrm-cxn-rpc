@@ -81,4 +81,5 @@ abstract class Message {
     }
     echo $blob;
   }
+
 }

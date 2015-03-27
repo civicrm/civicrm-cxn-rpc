@@ -27,7 +27,6 @@ class StdMessage extends Message {
    * @param string $cxnId
    * @param string $secret
    *   Base64-encoded secret.
-   * @param int $code
    * @param mixed $data
    *   Serializable data.
    */

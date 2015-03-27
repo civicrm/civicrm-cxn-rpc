@@ -93,9 +93,7 @@ class RegistrationServer extends Agent {
         $respData = call_user_func(array($this, $func), $reqData['cxn'], $reqData['params']);
       }
     }
-    $this->log->info('Responding', array(
-      $cxn['cxnId'], $cxn['secret'], $respData
-    ));
+    $this->log->info('Responding', array($cxn['cxnId'], $cxn['secret'], $respData));
     return new StdMessage($cxn['cxnId'], $cxn['secret'], $respData);
   }
 

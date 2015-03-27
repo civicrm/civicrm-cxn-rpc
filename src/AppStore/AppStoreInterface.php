@@ -7,4 +7,5 @@ interface AppStoreInterface {
   public function getPublicKey($appId);
 
   public function getPrivateKey($appId);
+
 }

@@ -72,15 +72,18 @@ class RegistrationClient extends Agent {
   /**
    * @param array $appMeta
    * @return array
-   *   Array($cxnId, $isOk).
+   *   Array($cxnId, $apiResult).
    */
   public function unregister($appMeta, $force = FALSE) {
     $cxn = $this->cxnStore->getByAppId($appMeta['appId']);
     if (!$cxn) {
-      return array(NULL, array(
-        'is_error' => 1,
-        'error_message' => 'Unrecognized appId',
-      ));
+      return array(
+        NULL,
+        array(
+          'is_error' => 1,
+          'error_message' => 'Unrecognized appId',
+        ),
+      );
     }
 
     $this->log->info('Unregister cxnId={cxnId} ({appId}, {appUrl})', array(

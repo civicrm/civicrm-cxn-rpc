@@ -52,4 +52,5 @@ class RegistrationServerTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(1, $data['is_error']);
     $this->assertEquals('Invalid message coding', $data['error_message']);
   }
+
 }

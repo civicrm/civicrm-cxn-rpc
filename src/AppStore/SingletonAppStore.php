@@ -47,4 +47,5 @@ class SingletonAppStore implements AppStoreInterface {
       return NULL;
     }
   }
+
 }
