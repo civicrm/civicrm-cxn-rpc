@@ -82,10 +82,7 @@ class RegistrationServer extends Agent {
       return $resp->setCode(400);
     }
 
-    $respData = array(
-      'is_error' => 1,
-      'error_message' => 'Unrecognized entity or action',
-    );
+    $respData = $this->createError('Unrecognized entity or action');
 
     if ($reqData['entity'] == 'Cxn' && preg_match('/^[a-zA-Z]+$/', $reqData['action'])) {
       $func = 'on' . $reqData['entity'] . strtoupper($reqData['action']{0}) . substr($reqData['action'], 1);
@@ -114,19 +111,15 @@ class RegistrationServer extends Agent {
         'cxnId' => $cxn['cxnId'],
       ));
       $this->cxnStore->add($cxn);
-      return array(
-        'is_error' => 0,
+      return $this->createSuccess(array(
         'cxn_id' => $cxn['cxnId'],
-      );
+      ));
     }
     else {
       $this->log->info('Register cxnId="{cxnId}": Secret does not match.', array(
         'cxnId' => $cxn['cxnId'],
       ));
-      return array(
-        'is_error' => 1,
-        'error_message' => 'Secret does not match previous registration.',
-      );
+      $this->createError('Secret does not match previous registration.');
     }
   }
 
@@ -145,30 +138,24 @@ class RegistrationServer extends Agent {
       $this->log->info('Unregister cxnId="{cxnId}": Non-existent', array(
         'cxnId' => $cxn['cxnId'],
       ));
-      return array(
-        'is_error' => 0,
+      return $this->createSuccess(array(
         'cxn_id' => $cxn['cxnId'],
-      );
+      ));
     }
     elseif ($storedCxn['secret'] == $cxn['secret']) {
       $this->log->info('Unregister cxnId="{cxnId}: OK"', array(
         'cxnId' => $cxn['cxnId'],
       ));
       $this->cxnStore->remove($cxn['cxnId']);
-      return array(
-        'is_error' => 0,
+      return $this->createSuccess(array(
         'cxn_id' => $cxn['cxnId'],
-      );
+      ));
     }
     else {
       $this->log->info('Unregister cxnId="{cxnId}": Secret does not match.', array(
         'cxnId' => $cxn['cxnId'],
       ));
-
-      return array(
-        'is_error' => 1,
-        'error_message' => 'Incorrect cxnId or secret.',
-      );
+      $this->createError('Incorrect cxnId or secret.');
     }
   }
 

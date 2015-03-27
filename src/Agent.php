@@ -136,4 +136,26 @@ class Agent {
     $this->log = $log;
   }
 
+  /**
+   * @param array $values
+   * @return array
+   */
+  protected function createSuccess($values) {
+    return array(
+      'is_error' => 0,
+      'values' => $values,
+    );
+  }
+
+  /**
+   * @param string $message
+   * @return array
+   */
+  protected function createError($message) {
+    return array(
+      'is_error' => 1,
+      'error_message' => $message,
+    );
+  }
+
 }
