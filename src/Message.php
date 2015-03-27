@@ -73,4 +73,12 @@ abstract class Message {
     return array($this->headers, $this->encode(), $this->code);
   }
 
+  public function send() {
+    list ($headers, $blob, $code) = $this->toHttp();
+    header("X-PHP-Response-Code: $code", TRUE, $code);
+    foreach ($headers as $n => $v) {
+      header("$n: $v");
+    }
+    echo $blob;
+  }
 }

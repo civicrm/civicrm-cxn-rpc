@@ -94,12 +94,7 @@ class ApiServer extends Agent {
    *   POST'ed ciphertext.
    */
   public function handleAndRespond($blob) {
-    list ($headers, $blob, $code) = $this->handle($blob)->toHttp();
-    header("X-PHP-Response-Code: $code", TRUE, $code);
-    foreach ($headers as $n => $v) {
-      header("$n: $v");
-    }
-    echo $blob;
+    $this->handle($blob)->send();
     exit();
   }
 
