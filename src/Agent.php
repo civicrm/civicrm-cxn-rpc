@@ -3,6 +3,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\AppStore\SingletonAppStore;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
+use Civi\Cxn\Rpc\Message\AppMetasMessage;
 use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
@@ -29,6 +30,12 @@ class Agent {
    * @var \Psr\Log\LoggerInterface
    */
   protected $log;
+
+  function __construct($caCert, $appStore, $cxnStore) {
+    $this->caCert = $caCert;
+    $this->appStore = $appStore;
+    $this->cxnStore = $cxnStore;
+  }
 
   /**
    * @param array|string $formats
@@ -62,6 +69,9 @@ class Agent {
 
       case RegistrationMessage::NAME:
         return RegistrationMessage::decode($this->appStore, $blob);
+
+      case AppMetasMessage::NAME:
+        return AppMetasMessage::decode($this->caCert, $blob);
 
       default:
         throw new InvalidMessageException("Unrecognized message type.");

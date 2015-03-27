@@ -55,8 +55,8 @@ class AppMetasMessage extends Message {
    *   PEM-encoded CA. The purported signer will be checked against this CA.
    *   NULL to disable signature checking.
    * @param string $blob
-   * @return array
-   *   Decoded data.
+   * @return AppMetasMessage
+   *   Validated message.
    * @throws InvalidMessageException
    */
   public static function decode($caCert, $blob) {
@@ -94,7 +94,7 @@ class AppMetasMessage extends Message {
     if (Time::getTime() > $envelope['ttl']) {
       throw new InvalidMessageException("Invalid message: expired");
     }
-    return json_decode($envelope['r'], TRUE);
+    return New AppMetasMessage($caCert, NULL, json_decode($envelope['r'], TRUE));
   }
 
   protected static function getRsa($key, $type) {
