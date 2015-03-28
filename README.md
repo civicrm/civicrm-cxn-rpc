@@ -17,29 +17,48 @@ groups:
 Protocol v0.2
 -------------
 
-There are two message exchanges:
+There are three substantive messages which may be exchanged:
 
- * Sites may register (or unregister) with applications. Applications
-   should generally accept new registrations. During registration,
-   the site generates a shared secret (AES-256 key) and sends it to
-   the application (using the app's RSA public-key). Only the
-   target application can decode the registration message.
- * Applications may send API calls to sites. In accordance with Civi
-   API, these are framed as entity+action+params. All API calls
-   are encrypted with the shared secret (AES-256). Only the
-   site and application know this shared secret.
+ * [AppMetasMessage](src/Message/AppMetasMessage.php) (cxn.civicrm.org => Site)
+   * Use case: A CiviCRM site connects to cxn.civicrm.org and requests a list of available applications.
+   * Payload: The list of applications includes the title, description, registration URL, and X.509 certificate for each.
+   * Crypto: The payload and ttl are signed by cxn.civicrm.org (RSA, 2048-bit key) and transferred in plaintext.
+ * [RegistrationMessage](src/Message/RegistrationMessage.php) (Site => Application)
+   * Use case: A CiviCRM site registers with an application.
+   * Payload: The registration includes a unique identifer for the connection, a shared secret, and a callback URL.
+   * Crypto: The payload and ttl are encrypted with the application's 2048-bit public-key.
+   * Note: The registration *request* uses RegistrationMessage, but the *acknowledgement* uses StdMessage.
+ * [StdMessage](src/Message/StdMessage.php) (Application => Site)
+   * Use case (typical): An application sends an API call to a site. The site returns a response.
+   * Payload (typical): An entity+action+params tuple (as in Civi APIv3).
+   * Crypto: The shared-secret is used to generate an AES encryption key and HMAC signing key. The payload and ttl are encrypted with AES-CBC (256-bit), and the ciphertext is signed with HMAC-SHA256.
+
+Additionally, there are two non-substantive message types. They should *not* be used for major activity but may assist in advisory error-reports:
+
+ * [InsecureMessage](src/Message/InsecureMessage.php)
+   * Use case: A server (RegistrationServer or ApiServer) receives an incoming message but cannot authenticate or decrypt it. The server responds with a NACK using InsecureMessage.
+   * Payload: An error message.
+   * Crypto: Unencrypted and unsigned.
+ * [GarbledMessage](src/Message/GarbledMessage.php)
+   * Use case: A client (RegistrationClient or ApiClient) receives a response but cannot decode it. (Ex: The server was buggy or badly configured, and PHP error messages were dumped into the ciphertext.)
+   * Payload: Unknown
+   * Crypto: Unknown
 
 Some considerations:
 
- * Messages can be passed over HTTP, HTTPS, or any other medium. Passing messages over HTTPS is preferrable (because HTTPS supports more protocols and features, such as forward-secrecy), but even with HTTP all interctions will be encrypted.
- * Certificates are validated using the CiviCRM CA. This seems better than trusting a hundred random CA's around the world -- there's one point of failure [rather than a hundred points of failure](http://googleonlinesecurity.blogspot.com/2015/03/maintaining-digital-certificate-security.html).
- * If the CA were compromised, it would affect one's ability to negotiate new connections, but it wouldn't affect the security of existing connections. The CA cannot discover or change the shared-secret.
+ * Messages can be passed over HTTP, HTTPS, or any other medium. Passing messages over HTTPS is preferrable (because HTTPS supports more sophisticated cryptography), but even with HTTP all interctions will be encrypted.
+ * Application certificates are validated using the CiviCRM CA. This seems better than trusting a hundred random CA's around the world -- there's one point of failure [rather than a hundred points of failure](http://googleonlinesecurity.blogspot.com/2015/03/maintaining-digital-certificate-security.html).
+ * If the CA were compromised and if an attacker could execute man-in-the-middle attacks against sites or applications, then it could compromise new connections. However, it cannot compromise existing connections because the CA lacks knowledge or means to manipulate the shared-secret.
  * Sites do not need certificates. Only applications need certificates, and the number of applications is relatively small. Therefore, we don't need automated certificate enrollment. This significantly simplifies the technology and riskness of operating the CA.
 
 Protocol v0.1
 -------------
 
-Never published.
+Never published or completed. Broadly, the v0.1 protocol relied on certificates for both client and server, and used RSA to encrypt all messages. v0.1 had a few issues:
+
+ * If the certificate authority were compromised, then the high trust placed in the CA could be abused to imitate both client and server, enabling man-in-the-middle attacks against existing connections.
+ * Using RSA for everything meant that the crypto was slower for typical API calls.
+ * RSA seems to be best when combined with session-key negotiaion (e.g DH) but I don't remember the details of DH well enough to use/adapt it (without delaying the schedule).
 
 Base Classes
 ------------
