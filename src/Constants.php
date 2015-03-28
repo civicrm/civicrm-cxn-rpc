@@ -47,6 +47,8 @@ class Constants {
    */
   const OFFICIAL_APPMETAS_CN = 'cxn.civicrm.org';
 
+  const OFFICIAL_APPMETAS_URL = 'http://cxn.civicrm.org/apps';
+
   /**
    * @return string
    *   The path to the PEM-encode X.509 certificate of the
