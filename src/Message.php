@@ -66,6 +66,9 @@ abstract class Message {
   }
 
   /**
+   * Extract the necessary parts to return this
+   * message as an HTTP response.
+   *
    * @return array
    *   array($headers, $blob, $code)
    */
@@ -73,8 +76,12 @@ abstract class Message {
     return array($this->headers, $this->encode(), $this->code);
   }
 
+  /**
+   * Send this message immediately.
+   */
   public function send() {
     list ($headers, $blob, $code) = $this->toHttp();
+    header('Content-Type: ' . Constants::MIME_TYPE);
     header("X-PHP-Response-Code: $code", TRUE, $code);
     foreach ($headers as $n => $v) {
       header("$n: $v");
@@ -82,4 +89,20 @@ abstract class Message {
     echo $blob;
   }
 
+  /**
+   * Convert this message a Symfony "Response" object.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   */
+  public function toSymfonyResponse() {
+    $headers = array_merge(
+      array('Content-Type' => Constants::MIME_TYPE),
+      $this->getHeaders()
+    );
+    return new \Symfony\Component\HttpFoundation\Response(
+      $this->encode(),
+      $this->code,
+      $headers
+    );
+  }
 }
