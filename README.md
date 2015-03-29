@@ -19,16 +19,16 @@ Protocol v0.2
 
 There are three substantive messages which may be exchanged:
 
- * [AppMetasMessage](src/Message/AppMetasMessage.php) (cxn.civicrm.org => Site)
+ * [AppMetasMessage](src/Message/AppMetasMessage.php) (cxn.civicrm.org => SaveTheWhales.org)
    * Use case: A CiviCRM site connects to cxn.civicrm.org and requests a list of available applications.
    * Payload: The list of applications includes the title, description, registration URL, and X.509 certificate for each.
    * Crypto: The payload and ttl are signed by cxn.civicrm.org (RSA, 2048-bit key) and transferred in plaintext.
- * [RegistrationMessage](src/Message/RegistrationMessage.php) (Site => Application)
+ * [RegistrationMessage](src/Message/RegistrationMessage.php) (SaveTheWhales.org => AddressCleanup.com)
    * Use case: A CiviCRM site registers with an application.
    * Payload: The registration includes a unique identifer for the connection, a shared secret, and a callback URL.
    * Crypto: The payload and ttl are encrypted with the application's 2048-bit public-key.
    * Note: The registration *request* uses RegistrationMessage, but the *acknowledgement* uses StdMessage.
- * [StdMessage](src/Message/StdMessage.php) (Application => Site)
+ * [StdMessage](src/Message/StdMessage.php) (AddressCleanup.com => SaveTheWhales.org)
    * Use case (typical): An application sends an API call to a site. The site returns a response.
    * Payload (typical): An entity+action+params tuple (as in Civi APIv3).
    * Crypto: The shared-secret is used to generate an AES encryption key and HMAC signing key. The payload and ttl are encrypted with AES-CBC (256-bit), and the ciphertext is signed with HMAC-SHA256.
