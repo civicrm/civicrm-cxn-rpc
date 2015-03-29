@@ -2,7 +2,7 @@ Civi\Cxn\Rpc
 ------------
 
 Civi\Cxn\Rpc implements an RPC mechanism based on X.509 and JSON.
-Generally, it is based on a assymetric business relationship between two
+Generally, it is based on an asymmetric business relationship between two
 groups:
 
  * "Sites" are online properties owned by end-user organizations. They
