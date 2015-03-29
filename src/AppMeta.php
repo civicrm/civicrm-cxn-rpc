@@ -31,7 +31,7 @@ class AppMeta {
       $errors['appMeta'] = 'Not an array';
     }
 
-    foreach (array('appCert', 'appId') as $key) {
+    foreach (array('title', 'appCert', 'appId') as $key) {
       if (empty($appMeta[$key])) {
         $errors[$key] = 'Required field';
       }
