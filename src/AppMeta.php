@@ -47,7 +47,15 @@ class AppMeta {
     }
 
     if (!isset($appMeta['perm']) || !is_array($appMeta['perm'])) {
-      $errors['perm'] = 'Missing permisisons';
+      $errors['perm'] = 'Missing permissions';
+    }
+
+    if (!isset($appMeta['perm']['api']) || !is_array($appMeta['perm']['api'])) {
+      $errors['perm-api'] = 'Missing permissions (API whitelist)';
+    }
+
+    if (!isset($appMeta['perm']['grant'])) {
+      $errors['perm-grant'] = 'Missing permissions (grants)';
     }
 
     return $errors;

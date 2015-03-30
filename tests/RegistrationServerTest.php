@@ -36,11 +36,13 @@ class RegistrationServerTest extends \PHPUnit_Framework_TestCase {
     $this->assertNotEmpty($caCert);
 
     $appMeta = array(
+      'title' => 'My App',
       'appId' => self::APP_ID,
       'appCert' => CA::signCSR($caKeyPair, $caCert, CA::createCSR($appKeyPair, '/O=Application Provider')),
       'appUrl' => 'http://app-a.com/cxn',
       'perm' => array(
-        'sys' => array('view all contacts'),
+        'api' => array(),
+        'grant' => array('view all contacts'),
       ),
     );
     $appCxnStore = new ArrayCxnStore();
