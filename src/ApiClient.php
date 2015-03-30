@@ -1,6 +1,7 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
@@ -44,12 +45,27 @@ class ApiClient extends Agent {
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $req->encode(), array(
       'Content-type' => Constants::MIME_TYPE,
     ));
-    $respMessage = Message\StdMessage::decode($this->cxnStore, $respCiphertext);
-    if ($respMessage->getCxnId() != $cxn['cxnId']) {
-      // Tsk, tsk, Mallory!
-      throw new \RuntimeException('Received response from incorrect connection.');
+    $respMessage = $this->decode(array(StdMessage::NAME, GarbledMessage::NAME), $respCiphertext);
+    if ($respMessage instanceof GarbledMessage) {
+      return array(
+        $respCode,
+        array(
+          'is_error' => 1,
+          'error_message' => 'Received garbled message',
+          'original_message' => $respMessage->getData(),
+        ),
+      );
     }
-    return $respMessage->getData();
+    elseif ($respMessage instanceof StdMessage){
+      if ($respMessage->getCxnId() != $cxn['cxnId']) {
+        // Tsk, tsk, Mallory!
+        throw new \RuntimeException('Received response from incorrect connection.');
+      }
+      return $respMessage->getData();
+    }
+    else {
+      return $this->createError('Unrecognized message type.');
+    }
   }
 
   /**
