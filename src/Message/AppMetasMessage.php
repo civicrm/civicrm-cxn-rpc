@@ -94,7 +94,7 @@ class AppMetasMessage extends Message {
     if (Time::getTime() > $envelope['ttl']) {
       throw new InvalidMessageException("Invalid message: expired");
     }
-    return New AppMetasMessage($caCert, NULL, json_decode($envelope['r'], TRUE));
+    return new AppMetasMessage($wireCert, NULL, json_decode($envelope['r'], TRUE));
   }
 
   /**
