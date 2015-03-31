@@ -81,7 +81,7 @@ class AppMetasMessage extends Message {
       }
 
       $isValid = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($wireCertX509, $wireEnvelope, $wireSig) {
-        return self::getRsaFromCert($wireCertX509)->verify($wireEnvelope, base64_decode($wireSig));
+        return AppMetasMessage::getRsaFromCert($wireCertX509)->verify($wireEnvelope, base64_decode($wireSig));
       });
       if (!$isValid) {
         throw new InvalidMessageException("Invalid message: incorrect signature");
@@ -97,7 +97,15 @@ class AppMetasMessage extends Message {
     return New AppMetasMessage($caCert, NULL, json_decode($envelope['r'], TRUE));
   }
 
-  protected static function getRsa($key, $type) {
+  /**
+   * Quasi-private - marked public to work-around PHP 5.3 compat.
+   *
+   * @param string $key
+   * @param string $type
+   *   'public' or 'private'
+   * @return \Crypt_RSA
+   */
+  public static function getRsa($key, $type) {
     $rsa = new \Crypt_RSA();
     $rsa->loadKey($key);
     if ($type == 'public') {
@@ -109,7 +117,13 @@ class AppMetasMessage extends Message {
     return $rsa;
   }
 
-  protected static function getRsaFromCert($x509) {
+  /**
+   * Quasi-private - marked public to work-around PHP 5.3 compat.
+   *
+   * @param \File_X509 $x509
+   * @return \Crypt_RSA
+   */
+  public static function getRsaFromCert($x509) {
     $rsa = $x509->getPublicKey();
     if (!$rsa) {
       throw new InvalidMessageException("Invalid message: certificate missing or does not have public key");

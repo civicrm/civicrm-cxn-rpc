@@ -63,7 +63,7 @@ class RegistrationMessage extends Message {
       throw new InvalidMessageException('Received message intended for unknown app.');
     }
     $plaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($ciphertext, $appPrivKey) {
-      return self::getRsa($appPrivKey, 'private')->decrypt($ciphertext);
+      return RegistrationMessage::getRsa($appPrivKey, 'private')->decrypt($ciphertext);
     });
     if (empty($plaintext)) {
       throw new InvalidMessageException("Invalid message: decryption produced empty message");
@@ -75,7 +75,15 @@ class RegistrationMessage extends Message {
     return json_decode($envelope['r'], TRUE);
   }
 
-  protected static function getRsa($key, $type) {
+  /**
+   * Quasi-private - marked public to work-around PHP 5.3 compat.
+   *
+   * @param string $key
+   * @param string $type
+   *   'public' or 'private'
+   * @return \Crypt_RSA
+   */
+  public static function getRsa($key, $type) {
     $rsa = new \Crypt_RSA();
     $rsa->loadKey($key);
     if ($type == 'public') {

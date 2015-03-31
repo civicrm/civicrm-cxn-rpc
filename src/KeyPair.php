@@ -34,7 +34,7 @@ class KeyPair {
    *   - publickey: string.
    */
   public static function save($file, $keyPair) {
-    file_put_contents($file, json_encode($keyPair, JSON_PRETTY_PRINT));
+    file_put_contents($file, json_encode($keyPair, defined('JSON_PRETTY_PRINT') ? JSON_PRETTY_PRINT : 0));
   }
 
 }
