@@ -17,9 +17,9 @@ class RegistrationServerTest extends \PHPUnit_Framework_TestCase {
     return array(
       array($appKeyPair, new InsecureMessage(array('sldjkfasdf'))),
       array($appKeyPair, new InsecureMessage(array('cxn' => array('abcd')))),
-      array($appKeyPair, new StdMessage(Cxn::createId(), StdMessage::createSecret(), array('whatever'))),
-      array($appKeyPair, new RegistrationMessage(AppMeta::createId(), $appKeyPair, array('whatever'))),
-      array($appKeyPair, new RegistrationMessage(self::APP_ID, $otherKeyPair, array('whatever'))),
+      array($appKeyPair, new StdMessage(Cxn::createId(), AesHelper::createSecret(), array('whatever'))),
+      array($appKeyPair, new RegistrationMessage(AppMeta::createId(), $appKeyPair['publickey'], array('whatever'))), // wrong appid
+      array($appKeyPair, new RegistrationMessage(self::APP_ID, $otherKeyPair['publickey'], array('whatever'))), // wrong key
     );
   }
 

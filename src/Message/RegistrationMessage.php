@@ -1,18 +1,28 @@
 <?php
 namespace Civi\Cxn\Rpc\Message;
 
+use Civi\Cxn\Rpc\AesHelper;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\AppStore\AppStoreInterface;
 use Civi\Cxn\Rpc\Message;
 use Civi\Cxn\Rpc\UserError;
 use Civi\Cxn\Rpc\Constants;
-use Civi\Cxn\Rpc\Time;
 
 /**
  * Class RegistrationMessage
  *
  * A registration message is sent from a site to an app when it wants to
  * create or update a connection.
+ *
+ * The message includes two ciphertext blobs. The first is a single RSA
+ * block representing the AES key. The second is AES-CBC+HMAC with the
+ * real data. This will allow us to expand the registration data (i.e.
+ * passing along more fields) without changing the protocol.
+ *
+ * Note: Crypt_RSA can encrypt oversized messages using an adhoc block
+ * mode that smells like ECB. This doesn't compromise confidentiality,
+ * but long messages could have their ciphertext spliced -- compromising
+ * integrity.
  *
  * @package Civi\Cxn\Rpc\Message
  */
@@ -34,14 +44,20 @@ class RegistrationMessage extends Message {
    *   Ciphertext.
    */
   public function encode() {
-    $ttl = Time::getTime() + Constants::REQUEST_TTL;
-    $envelope = array(
-      'ttl' => $ttl,
-      'r' => json_encode($this->data),
-    );
-    return self::NAME . Constants::PROTOCOL_DELIM
-    . $this->appId . Constants::PROTOCOL_DELIM
-    . self::getRsa($this->appPubKey, 'public')->encrypt(json_encode($envelope));
+    $secret = AesHelper::createSecret();
+
+    $rsaCiphertext = self::getRsa($this->appPubKey, 'public')->encrypt($secret);
+    if (strlen($rsaCiphertext) !== Constants::RSA_MSG_BYTES) {
+      throw new InvalidMessageException("RSA ciphertext has incorrect length");
+    }
+
+    list($body, $signature) = AesHelper::encryptThenSign($secret, json_encode($this->data));
+
+    return self::NAME
+    . Constants::PROTOCOL_DELIM . $this->appId
+    . Constants::PROTOCOL_DELIM . base64_encode($rsaCiphertext) // escape PROTOCOL_DELIM
+    . Constants::PROTOCOL_DELIM . $signature
+    . Constants::PROTOCOL_DELIM . $body;
   }
 
   /**
@@ -51,29 +67,35 @@ class RegistrationMessage extends Message {
    *   Decoded data.
    */
   public static function decode($appStore, $blob) {
-    $parts = explode(Constants::PROTOCOL_DELIM, $blob, 3);
-    if (count($parts) != 3) {
+    $parts = explode(Constants::PROTOCOL_DELIM, $blob, 5);
+    if (count($parts) != 5) {
       throw new InvalidMessageException('Invalid message: insufficient parameters');
     }
-    list ($wireProt, $wireAppId, $ciphertext) = $parts;
-    if ($wireProt != self::NAME) {
+    list ($wireProt, $wireAppId, $rsaCiphertextB64, $signature, $body) = $parts;
+
+    if ($wireProt !== self::NAME) {
       throw new InvalidMessageException('Invalid message: wrong protocol name');
     }
+
     $appPrivKey = $appStore->getPrivateKey($wireAppId);
     if (!$appPrivKey) {
       throw new InvalidMessageException('Received message intended for unknown app.');
     }
-    $plaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($ciphertext, $appPrivKey) {
-      return RegistrationMessage::getRsa($appPrivKey, 'private')->decrypt($ciphertext);
+
+    $rsaCiphertext = base64_decode($rsaCiphertextB64);
+    if (strlen($rsaCiphertext) !== Constants::RSA_MSG_BYTES) {
+      throw new InvalidMessageException("RSA ciphertext has incorrect length");
+    }
+
+    $secret = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($rsaCiphertext, $appPrivKey) {
+      return RegistrationMessage::getRsa($appPrivKey, 'private')->decrypt($rsaCiphertext);
     });
-    if (empty($plaintext)) {
-      throw new InvalidMessageException("Invalid message: decryption produced empty message");
+    if (empty($secret)) {
+      throw new InvalidMessageException("Invalid message: decryption produced empty secret");
     }
-    $envelope = json_decode($plaintext, TRUE);
-    if (!is_numeric($envelope['ttl']) || Time::getTime() > $envelope['ttl']) {
-      throw new InvalidMessageException("Invalid message: expired");
-    }
-    return json_decode($envelope['r'], TRUE);
+
+    $plaintext = AesHelper::authenticateThenDecrypt($secret, $body, $signature);
+    return json_decode($plaintext, TRUE);
   }
 
   /**

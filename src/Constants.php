@@ -29,6 +29,9 @@ class Constants {
 
   const RSA_KEYLEN = 2048;
 
+  // 2048 bits / 8 bits-per-byte = 256 bytes
+  const RSA_MSG_BYTES = 256;
+
   const MIME_TYPE = 'application/x-civi-cxn';
 
   const PROTOCOL_DELIM = ""; // ^A, not visible in some editors
