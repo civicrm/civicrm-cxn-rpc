@@ -49,7 +49,7 @@ class RegistrationClient extends Agent {
     if (!$cxn) {
       $cxn = array(
         'cxnId' => Cxn::createId(),
-        'secret' => Message\StdMessage::createSecret(),
+        'secret' => AesHelper::createSecret(),
         'appId' => $appMeta['appId'],
       );
     }
