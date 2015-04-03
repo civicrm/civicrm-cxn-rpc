@@ -97,7 +97,7 @@ class StdMessage extends Message {
       return $cipher->decrypt($parsedCiphertextBody);
     });
     $envelope = json_decode($plaintext, TRUE);
-    if (Time::getTime() > $envelope['ttl']) {
+    if (!is_numeric($envelope['ttl']) || Time::getTime() > $envelope['ttl']) {
       throw new InvalidMessageException("Invalid message: expired");
     }
 

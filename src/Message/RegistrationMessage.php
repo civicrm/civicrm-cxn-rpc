@@ -69,7 +69,7 @@ class RegistrationMessage extends Message {
       throw new InvalidMessageException("Invalid message: decryption produced empty message");
     }
     $envelope = json_decode($plaintext, TRUE);
-    if (Time::getTime() > $envelope['ttl']) {
+    if (!is_numeric($envelope['ttl']) || Time::getTime() > $envelope['ttl']) {
       throw new InvalidMessageException("Invalid message: expired");
     }
     return json_decode($envelope['r'], TRUE);
