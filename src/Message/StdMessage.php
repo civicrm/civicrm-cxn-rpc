@@ -42,10 +42,6 @@ class StdMessage extends Message {
    */
   public function encode() {
     $iv = crypt_random_string(Constants::AES_BYTES);
-    $envelope = array(
-      'ttl' => Time::getTime() + Constants::REQUEST_TTL,
-      'r' => json_encode($this->data),
-    );
 
     $keys = self::deriveAesKeys($this->secret);
 
@@ -53,12 +49,20 @@ class StdMessage extends Message {
     $cipher->setKeyLength(Constants::AES_BYTES);
     $cipher->setKey($keys['enc']);
     $cipher->setIV($iv);
-    $ciphertext = $iv . $cipher->encrypt(json_encode($envelope));
 
-    return self::NAME
-    . Constants::PROTOCOL_DELIM . $this->cxnId
-    . Constants::PROTOCOL_DELIM . hash_hmac('sha256', $ciphertext, $keys['auth'])
-    . Constants::PROTOCOL_DELIM . $ciphertext;
+    // JSON string; this will be signed but not encrypted
+    $jsonEnvelope = json_encode(array(
+      'ttl' => Time::getTime() + Constants::REQUEST_TTL,
+      'iv' => BinHex::bin2hex($iv),
+    ));
+    // JSON string; this will be signed and encrypted
+    $jsonEncrypted = $cipher->encrypt(json_encode($this->data));
+    $body = $jsonEnvelope . Constants::PROTOCOL_DELIM . $jsonEncrypted;
+
+    return self::NAME // unsignable; determines decoder
+    . Constants::PROTOCOL_DELIM . $this->cxnId // unsignable; determines key
+    . Constants::PROTOCOL_DELIM . hash_hmac('sha256', $body, $keys['auth'])
+    . Constants::PROTOCOL_DELIM . $body;
   }
 
   /**
@@ -70,38 +74,50 @@ class StdMessage extends Message {
    * @throws InvalidMessageException
    */
   public static function decode($cxnStore, $message) {
-    list ($parsedProt, $parsedCxnId, $parsedHmac, $parsedCiphertext) = explode(Constants::PROTOCOL_DELIM, $message, 4);
+    list ($parsedProt, $parsedCxnId, $parsedHmac, $parsedBody) = explode(Constants::PROTOCOL_DELIM, $message, 4);
     if ($parsedProt != self::NAME) {
       throw new InvalidMessageException('Incorrect coding. Expected: ' . self::NAME);
     }
     $cxn = $cxnStore->getByCxnId($parsedCxnId);
     if (empty($cxn)) {
-      throw new InvalidMessageException('Received message with unknown connection ID.');
+      throw new InvalidMessageException('Unknown connection ID');
     }
 
     $keys = self::deriveAesKeys($cxn['secret']);
 
-    $localHmac = hash_hmac('sha256', $parsedCiphertext, $keys['auth']);
+    $localHmac = hash_hmac('sha256', $parsedBody, $keys['auth']);
     if (!self::hash_compare($parsedHmac, $localHmac)) {
-      throw new InvalidMessageException("Hash does not match ciphertext");
+      throw new InvalidMessageException("Incorrect hash");
     }
 
-    $plaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($parsedCiphertext, $cxn, $keys) {
-      $iv = substr($parsedCiphertext, 0, Constants::AES_BYTES);
-      $parsedCiphertextBody = substr($parsedCiphertext, Constants::AES_BYTES);
+    list ($jsonEnvelope, $jsonEncrypted) = explode(Constants::PROTOCOL_DELIM, $parsedBody, 2);
+    if (strlen($jsonEnvelope) > Constants::MAX_ENVELOPE_BYTES) {
+      throw new InvalidMessageException("Oversized envelope");
+    }
 
+    $envelope = json_decode($jsonEnvelope, TRUE);
+    if (!$envelope) {
+      throw new InvalidMessageException("Malformed envelope");
+    }
+
+    if (!is_numeric($envelope['ttl']) || Time::getTime() > $envelope['ttl']) {
+      throw new InvalidMessageException("Invalid TTL");
+    }
+
+    if (!is_string($envelope['iv']) || strlen($envelope['iv']) !== Constants::AES_BYTES*2 || !preg_match('/^[a-f0-9]+$/', $envelope['iv'])) {
+      // AES_BYTES (32) ==> bin2hex ==> 2 hex digits (4-bit) per byte (8-bit)
+      throw new InvalidMessageException("Malformed initialization vector");
+    }
+
+    $jsonPlaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($jsonEncrypted, $envelope, $cxn, $keys) {
       $cipher = new \Crypt_AES(CRYPT_AES_MODE_CBC);
       $cipher->setKeyLength(Constants::AES_BYTES);
       $cipher->setKey($keys['enc']);
-      $cipher->setIV($iv);
-      return $cipher->decrypt($parsedCiphertextBody);
+      $cipher->setIV(BinHex::hex2bin($envelope['iv']));
+      return $cipher->decrypt($jsonEncrypted);
     });
-    $envelope = json_decode($plaintext, TRUE);
-    if (!is_numeric($envelope['ttl']) || Time::getTime() > $envelope['ttl']) {
-      throw new InvalidMessageException("Invalid message: expired");
-    }
 
-    return new StdMessage($parsedCxnId, $cxn['secret'], json_decode($envelope['r'], TRUE));
+    return new StdMessage($parsedCxnId, $cxn['secret'], json_decode($jsonPlaintext, TRUE));
   }
 
   /**

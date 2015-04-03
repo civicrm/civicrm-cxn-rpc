@@ -34,8 +34,9 @@ class RegistrationMessage extends Message {
    *   Ciphertext.
    */
   public function encode() {
+    $ttl = Time::getTime() + Constants::REQUEST_TTL;
     $envelope = array(
-      'ttl' => Time::getTime() + Constants::REQUEST_TTL,
+      'ttl' => $ttl,
       'r' => json_encode($this->data),
     );
     return self::NAME . Constants::PROTOCOL_DELIM
