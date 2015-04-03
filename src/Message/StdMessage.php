@@ -41,6 +41,7 @@ class StdMessage extends Message {
    * @throws InvalidMessageException
    */
   public function encode() {
+    $iv = crypt_random_string(Constants::AES_BYTES);
     $envelope = array(
       'ttl' => Time::getTime() + Constants::REQUEST_TTL,
       'r' => json_encode($this->data),
@@ -51,7 +52,8 @@ class StdMessage extends Message {
     $cipher = new \Crypt_AES(CRYPT_AES_MODE_CBC);
     $cipher->setKeyLength(Constants::AES_BYTES);
     $cipher->setKey($keys['enc']);
-    $ciphertext = $cipher->encrypt(json_encode($envelope));
+    $cipher->setIV($iv);
+    $ciphertext = $iv . $cipher->encrypt(json_encode($envelope));
 
     return self::NAME
     . Constants::PROTOCOL_DELIM . $this->cxnId
@@ -85,10 +87,14 @@ class StdMessage extends Message {
     }
 
     $plaintext = UserError::adapt('Civi\Cxn\Rpc\Exception\InvalidMessageException', function () use ($parsedCiphertext, $cxn, $keys) {
+      $iv = substr($parsedCiphertext, 0, Constants::AES_BYTES);
+      $parsedCiphertextBody = substr($parsedCiphertext, Constants::AES_BYTES);
+
       $cipher = new \Crypt_AES(CRYPT_AES_MODE_CBC);
       $cipher->setKeyLength(Constants::AES_BYTES);
       $cipher->setKey($keys['enc']);
-      return $cipher->decrypt($parsedCiphertext);
+      $cipher->setIV($iv);
+      return $cipher->decrypt($parsedCiphertextBody);
     });
     $envelope = json_decode($plaintext, TRUE);
     if (Time::getTime() > $envelope['ttl']) {
