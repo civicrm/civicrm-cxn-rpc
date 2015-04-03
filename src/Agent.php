@@ -31,7 +31,7 @@ class Agent {
    */
   protected $log;
 
-  function __construct($caCert, $appStore, $cxnStore) {
+  public function __construct($caCert, $appStore, $cxnStore) {
     $this->caCert = $caCert;
     $this->appStore = $appStore;
     $this->cxnStore = $cxnStore;

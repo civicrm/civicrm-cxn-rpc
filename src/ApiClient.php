@@ -56,7 +56,7 @@ class ApiClient extends Agent {
         ),
       );
     }
-    elseif ($respMessage instanceof StdMessage){
+    elseif ($respMessage instanceof StdMessage) {
       if ($respMessage->getCxnId() != $cxn['cxnId']) {
         // Tsk, tsk, Mallory!
         throw new \RuntimeException('Received response from incorrect connection.');
