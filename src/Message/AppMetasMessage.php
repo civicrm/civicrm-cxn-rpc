@@ -70,7 +70,7 @@ class AppMetasMessage extends Message {
     }
 
     if ($caCert !== NULL) {
-      CA::validate($caCert, $wireCert);
+      CA::validate($wireCert, $caCert);
 
       $wireCertX509 = new \File_X509();
       $wireCertX509->loadX509($wireCert);

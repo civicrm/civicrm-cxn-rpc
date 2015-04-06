@@ -85,7 +85,6 @@ class CA {
     return $x509->saveX509($result);
   }
 
-
   /**
    * @param array $keyPair
    *   Array with elements:
@@ -112,7 +111,44 @@ class CA {
     return $x509->saveCSR($csr);
   }
 
-  public static function signCSR($caKeyPair, $caCert, $csr) {
+  /**
+   * Create a CSR for an authority that can issue CRLs.
+   *
+   * @param array $keyPair
+   * @param string $dn
+   * @return string
+   *   PEM-encoded CSR.
+   */
+  public static function createCrlDistCSR($keyPair, $dn) {
+    $privKey = new \Crypt_RSA();
+    $privKey->loadKey($keyPair['privatekey']);
+
+    $pubKey = new \Crypt_RSA();
+    $pubKey->loadKey($keyPair['publickey']);
+    $pubKey->setPublicKey();
+
+    $csr = new \File_X509();
+    $csr->setPrivateKey($privKey);
+    $csr->setPublicKey($pubKey);
+    $csr->setDN($dn);
+    $csr->loadCSR($csr->saveCSR($csr->signCSR()));
+    $csr->setExtension('id-ce-keyUsage', array('cRLSign'));
+
+    $csrData = $csr->signCSR();
+    return $csr->saveCSR($csrData);
+  }
+
+  /**
+   * @param array $caKeyPair
+   * @param string $caCert
+   *   PEM-encoded cert.
+   * @param string $csr
+   *   PEM-encoded CSR.
+   * @param int $serialNumber
+   * @return string
+   *   PEM-encoded cert.
+   */
+  public static function signCSR($caKeyPair, $caCert, $csr, $serialNumber = 1) {
     $privKey = new \Crypt_RSA();
     $privKey->loadKey($caKeyPair['privatekey']);
 
@@ -124,20 +160,65 @@ class CA {
     $issuer->setPrivateKey($privKey);
 
     $x509 = new \File_X509();
+    $x509->setSerialNumber($serialNumber, 10);
     $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
     $result = $x509->sign($issuer, $subject);
     return $x509->saveX509($result);
   }
 
-  public static function validate($caCert, $cert) {
-    $x509 = new \File_X509();
-    $x509->loadCA($caCert);
-    $x509->loadX509($cert);
-    if (!$x509->validateSignature()) {
+  /**
+   * @param string $certPem
+   *   PEM-encoded cert.
+   * @param string $caCertPem
+   *   PEM-encoded cert.
+   * @param string|null $crlPem
+   *   PEM-encoded CRL.
+   * @param string|null $crlDistCertPem
+   *   PEM-encoded cert for the service which generated CRL.
+   * @throws ExpiredCertException
+   * @throws InvalidCertException
+   */
+  public static function validate($certPem, $caCertPem, $crlPem = NULL, $crlDistCertPem = NULL) {
+    $caCertObj = X509Util::loadCACert($caCertPem);
+
+    $certObj = new \File_X509();
+    $certObj->loadCA($caCertPem);
+
+    if ($crlPem !== NULL) {
+      $crlObj = new \File_X509();
+      if ($crlDistCertPem) {
+        $crlDistCertObj = X509Util::loadCrlDistCert($crlDistCertPem, NULL, $caCertPem);
+        if ($crlDistCertObj->getSubjectDN(FILE_X509_DN_STRING) !== $caCertObj->getSubjectDN(FILE_X509_DN_STRING)) {
+          throw new InvalidCertException("CRL distributor does not act on behalf of this CA");
+        }
+        try {
+          CA::validate($crlDistCertPem, $caCertPem);
+        }
+        catch (InvalidCertException $ie) {
+          throw new InvalidCertException("CRL distributor has an invalid certificate", 0, $ie);
+        }
+        $crlObj->loadCA($crlDistCertPem);
+      }
+      $crlObj->loadCA($caCertPem);
+      $crlObj->loadCRL($crlPem);
+      if (!$crlObj->validateSignature()) {
+        throw new InvalidCertException("CRL signature is invalid");
+      }
+    }
+
+    $parsedCert = $certObj->loadX509($certPem);
+    if ($crlPem !== NULL) {
+      $revoked = $crlObj->getRevoked($parsedCert['tbsCertificate']['serialNumber']->toString());
+      if (!empty($revoked)) {
+        throw new InvalidCertException("Identity is invalid. Certificate revoked.");
+      }
+    }
+
+    if (!$certObj->validateSignature()) {
       throw new InvalidCertException("Identity is invalid. Certificate is not signed by proper CA.");
     }
-    if (!$x509->validateDate(Time::getTime())) {
+    if (!$certObj->validateDate(Time::getTime())) {
       throw new ExpiredCertException("Identity is invalid. Certificate expired.");
     }
   }

@@ -42,7 +42,7 @@ class RegistrationClient extends Agent {
   public function register($appMeta) {
     AppMeta::validate($appMeta);
     if ($this->caCert) {
-      CA::validate($this->caCert, $appMeta['appCert']);
+      CA::validate($appMeta['appCert'], $this->caCert);
     }
 
     $cxn = $this->cxnStore->getByAppId($appMeta['appId']);
@@ -95,7 +95,7 @@ class RegistrationClient extends Agent {
     $e = NULL;
     try {
       if ($this->caCert) {
-        CA::validate($this->caCert, $appMeta['appCert']);
+        CA::validate($appMeta['appCert'], $this->caCert);
       }
       list($respCode, $respData) = $this->doCall($appMeta, 'Cxn', 'unregister', array(), $cxn);
       $success = $respCode == 200 && is_array($respData) && $respData['is_error'] == 0;
