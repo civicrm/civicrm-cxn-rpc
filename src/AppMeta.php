@@ -37,6 +37,10 @@ class AppMeta {
       }
     }
 
+    if (!self::validateAppId($appMeta['appId'])) {
+      $errors['appId'] = 'Malformed';
+    }
+
     foreach (array('appUrl') as $key) {
       if (empty($appMeta[$key])) {
         $errors[$key] = 'Required field';
@@ -61,4 +65,11 @@ class AppMeta {
     return $errors;
   }
 
+  /**
+   * @param string $appId
+   * @return bool
+   */
+  public static function validateAppId($appId) {
+    return !empty($appId) && preg_match('/^app:[a-zA-Z0-9\.]+$/', $appId);
+  }
 }

@@ -9,7 +9,7 @@ use Psr\Log\NullLogger;
 
 class RegistrationServerTest extends \PHPUnit_Framework_TestCase {
 
-  const APP_ID = 'abcd1234abcd1234';
+  const APP_ID = 'app:org.civicrm.demoapp';
 
   public function invalidInputExamples() {
     $appKeyPair = KeyPair::create();
@@ -18,7 +18,7 @@ class RegistrationServerTest extends \PHPUnit_Framework_TestCase {
       array($appKeyPair, new InsecureMessage(array('sldjkfasdf'))),
       array($appKeyPair, new InsecureMessage(array('cxn' => array('abcd')))),
       array($appKeyPair, new StdMessage(Cxn::createId(), AesHelper::createSecret(), array('whatever'))),
-      array($appKeyPair, new RegistrationMessage(AppMeta::createId(), $appKeyPair['publickey'], array('whatever'))), // wrong appid
+      array($appKeyPair, new RegistrationMessage('app:org.civicrm.other', $appKeyPair['publickey'], array('whatever'))), // wrong appid
       array($appKeyPair, new RegistrationMessage(self::APP_ID, $otherKeyPair['publickey'], array('whatever'))), // wrong key
     );
   }

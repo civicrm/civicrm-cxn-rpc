@@ -20,7 +20,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $appKeyPair = KeyPair::create();
     $appMeta = array(
       'title' => 'My App',
-      'appId' => 'abcd1234abcd1234',
+      'appId' => 'app:abcd1234abcd1234',
       'appCert' => CA::signCSR($caKeyPair, $caCert, CA::createCSR($appKeyPair, '/O=Application Provider')),
       'appUrl' => 'http://app-a.com/cxn',
       'perm' => array(
