@@ -1,6 +1,8 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
+use Civi\Cxn\Rpc\Exception\GarbledMessageException;
+use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
@@ -33,6 +35,14 @@ class ApiClient extends Agent {
     $this->log = new NullLogger();
   }
 
+  /**
+   * @param string $entity
+   * @param string $action
+   * @param array $params
+   * @throws GarbledMessageException
+   * @throws InvalidMessageException
+   * @return mixed
+   */
   public function call($entity, $action, $params) {
     $this->log->debug("Send API call: {entity}.{action} over {cxnId}", array(
       'entity' => $entity,
@@ -47,24 +57,17 @@ class ApiClient extends Agent {
     ));
     $respMessage = $this->decode(array(StdMessage::NAME, GarbledMessage::NAME), $respCiphertext);
     if ($respMessage instanceof GarbledMessage) {
-      return array(
-        $respCode,
-        array(
-          'is_error' => 1,
-          'error_message' => 'Received garbled message',
-          'original_message' => $respMessage->getData(),
-        ),
-      );
+      throw new GarbledMessageException($respMessage);
     }
     elseif ($respMessage instanceof StdMessage) {
       if ($respMessage->getCxnId() != $cxn['cxnId']) {
         // Tsk, tsk, Mallory!
-        throw new \RuntimeException('Received response from incorrect connection.');
+        throw new InvalidMessageException('Received response from incorrect connection.');
       }
       return $respMessage->getData();
     }
     else {
-      return $this->createError('Unrecognized message type.');
+      throw new InvalidMessageException('Unrecognized message type.');
     }
   }
 
