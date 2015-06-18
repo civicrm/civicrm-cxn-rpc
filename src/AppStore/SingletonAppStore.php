@@ -21,6 +21,10 @@ class SingletonAppStore implements AppStoreInterface {
     $this->publicKey = $publicKey;
   }
 
+  public function getAppIds() {
+    return array($this->appId);
+  }
+
   public function getAppMeta($appId) {
     if ($appId == $this->appId) {
       return $this->appMeta;
