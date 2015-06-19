@@ -54,7 +54,7 @@ class RegistrationServer extends Agent {
       $reqData = $this->decode(RegistrationMessage::NAME, $blob);
     }
     catch (InvalidMessageException $e) {
-      $this->log->debug('Received invalid message', array(
+      $this->log->warning('Received invalid message', array(
         'exception' => $e,
       ));
       $resp = new InsecureMessage(array(
@@ -90,7 +90,7 @@ class RegistrationServer extends Agent {
         $respData = call_user_func(array($this, $func), $reqData['cxn'], $reqData['params']);
       }
     }
-    $this->log->info('Responding', array($cxn['cxnId'], $cxn['secret'], $respData));
+    $this->log->debug('Responding', array($cxn['cxnId'], $cxn['secret'], $respData));
     return new StdMessage($cxn['cxnId'], $cxn['secret'], $respData);
   }
 
@@ -107,8 +107,9 @@ class RegistrationServer extends Agent {
     $storedCxn = $this->cxnStore->getByCxnId($cxn['cxnId']);
 
     if (!$storedCxn || $storedCxn['secret'] == $cxn['secret']) {
-      $this->log->info('Register cxnId="{cxnId}": OK', array(
+      $this->log->notice('Register cxnId="{cxnId}" siteUrl={siteUrl}: OK', array(
         'cxnId' => $cxn['cxnId'],
+        'siteUrl' => $cxn['siteUrl'],
       ));
       $this->cxnStore->add($cxn);
       return $this->createSuccess(array(
@@ -116,8 +117,9 @@ class RegistrationServer extends Agent {
       ));
     }
     else {
-      $this->log->info('Register cxnId="{cxnId}": Secret does not match.', array(
+      $this->log->warning('Register cxnId="{cxnId}" siteUrl="{siteUrl}": Secret does not match.', array(
         'cxnId' => $cxn['cxnId'],
+        'siteUrl' => $cxn['siteUrl'],
       ));
       $this->createError('Secret does not match previous registration.');
     }
@@ -135,16 +137,18 @@ class RegistrationServer extends Agent {
   public function onCxnUnregister($cxn, $params) {
     $storedCxn = $this->cxnStore->getByCxnId($cxn['cxnId']);
     if (!$storedCxn) {
-      $this->log->info('Unregister cxnId="{cxnId}": Non-existent', array(
+      $this->log->warning('Unregister cxnId="{cxnId} siteUrl="{siteUrl}"": Non-existent', array(
         'cxnId' => $cxn['cxnId'],
+        'siteUrl' => $cxn['siteUrl'],
       ));
       return $this->createSuccess(array(
         'cxn_id' => $cxn['cxnId'],
       ));
     }
     elseif ($storedCxn['secret'] == $cxn['secret']) {
-      $this->log->info('Unregister cxnId="{cxnId}: OK"', array(
+      $this->log->notice('Unregister cxnId="{cxnId} siteUrl="{siteUrl}": OK"', array(
         'cxnId' => $cxn['cxnId'],
+        'siteUrl' => $cxn['siteUrl'],
       ));
       $this->cxnStore->remove($cxn['cxnId']);
       return $this->createSuccess(array(
@@ -152,8 +156,9 @@ class RegistrationServer extends Agent {
       ));
     }
     else {
-      $this->log->info('Unregister cxnId="{cxnId}": Secret does not match.', array(
+      $this->log->warning('Unregister cxnId="{cxnId}" siteUrl="{siteUrl}": Secret does not match.', array(
         'cxnId' => $cxn['cxnId'],
+        'siteUrl' => $cxn['siteUrl'],
       ));
       $this->createError('Incorrect cxnId or secret.');
     }
