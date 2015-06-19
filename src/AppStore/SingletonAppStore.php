@@ -52,4 +52,24 @@ class SingletonAppStore implements AppStoreInterface {
     }
   }
 
+  /**
+   * @param string $appId
+   *   The application's globally unique ID.
+   * @return array
+   *   Array with elements:
+   *     - publickey: string, pem.
+   *     - privatekey: string, pem
+   */
+  public function getKeyPair($appId) {
+    if ($appId == $this->appId) {
+      return array(
+        'publickey' => $this->getPublicKey($appId),
+        'privatekey' => $this->getPrivateKey($appId),
+      );
+    }
+    else {
+      return NULL;
+    }
+  }
+
 }

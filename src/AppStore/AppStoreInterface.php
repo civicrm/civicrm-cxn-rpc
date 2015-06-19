@@ -36,4 +36,13 @@ interface AppStoreInterface {
    */
   public function getPrivateKey($appId);
 
+  /**
+   * @param string $appId
+   *   The application's globally unique ID.
+   * @return array
+   *   Array with elements:
+   *     - publickey: string, pem.
+   *     - privatekey: string, pem
+   */
+  public function getKeyPair($appId);
 }
