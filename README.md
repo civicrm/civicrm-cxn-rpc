@@ -25,7 +25,7 @@ There are three substantive messages which may be exchanged:
    * Crypto: The payload and ttl are signed by cxn.civicrm.org (RSA, 2048-bit key) and transferred in plaintext.
  * [RegistrationMessage](src/Message/RegistrationMessage.php) (SaveTheWhales.org => AddressCleanup.com)
    * Use case: A CiviCRM site registers with an application.
-   * Payload: The registration includes a unique identifer for the connection, a shared secret, and a callback URL.
+   * Payload: The registration includes a unique identifer for the connection, a shared secret, and a callback URL. (More discussion below.)
    * Crypto: A temporary secret is generated and encrypted with the application's public key (RSA-2048). The payload is encrypted (AES-CBC), dated (ttl), and signed (HMAC-SHA256) using the secret. (See also: [AesHelper](src/AesHelper.php), StdMessage)
    * Note: The registration *request* uses RegistrationMessage, but the *acknowledgement* uses StdMessage.
  * [StdMessage](src/Message/StdMessage.php) (AddressCleanup.com => SaveTheWhales.org)
@@ -51,6 +51,34 @@ Some considerations:
  * Application certificates are validated using the CiviCRM CA. This seems better than trusting a hundred random CA's around the world -- there's one point of failure [rather than a hundred points of failure](http://googleonlinesecurity.blogspot.com/2015/03/maintaining-digital-certificate-security.html).
  * If the CA were compromised and if an attacker could execute man-in-the-middle attacks against sites or applications, then it could compromise new connections. However, it cannot compromise existing connections because the CA lacks knowledge or means to manipulate the shared-secret.
  * Sites do not need certificates. Only applications need certificates, and the number of applications is relatively small. Therefore, we don't need automated certificate enrollment. This significantly simplifies the technology and riskness of operating the CA.
+
+Protocol v0.2: RegistrationMessage
+----------------------------------
+
+The RegistrationMessage format is used whenever the site (SaveTheWhales.org) sends a message to the application (AddressCleanup.com). The most common case is to send a `Cxn.register` request.
+
+The message data includes the following keys:
+
+ * `entity`: string. Currently, only "Cxn" is used.
+ * `action`: string.
+ * `cxn`: array. See `Cxn.php`.
+ * `params`: array. Varies depending on entity/action.
+
+The following entity/actions are supported:
+
+ * `Cxn`.`register` (mandatory): Establish a new connection or update an existing connection.
+   * `cxn`: For updates, both `cxnId` and `secret` must match the previous registration.
+   * `params`: none
+   * Note: `RegistrationServer` provides a standard implementation.
+ * `Cxn`.`unregister` (mandatory): Destroy an existing connection.
+   * `cxn`: Both `cxnId` and `secret` must match the previous registration.
+   * `params`: none
+   * Note: `RegistrationServer` provides a standard implementation.
+ * `Cxn`.`getlink` (optional): Compose a link for an authenticated service.
+   * `cxn`: Both `cxnId` and `secret` must match the previous registration.
+   * `params`:
+     * `page`: string. The name of the page to load (e.g. "settings").
+   * Note: Applications have discretion to define links in AppMeta. *If* there are links in `AppMeta`, they will be resolved using `getlink`. To support this, one may extend `RegistrationServer` and define `function onCxnGetlink(...)`.
 
 Protocol v0.1
 -------------
