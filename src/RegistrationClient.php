@@ -118,6 +118,47 @@ class RegistrationClient extends Agent {
   }
 
   /**
+   * @param array $appMeta
+   *   See AppMeta::validate.
+   * @param string $entity
+   *   An entity name (usually "Cxn").
+   * @param string $action
+   *   An action (eg "getlink").
+   * @param array $params
+   *   Open-ended key-value params (depending on entity+action).
+   * @return mixed
+   *   The response data.
+   * @throws Exception\ExpiredCertException
+   * @throws Exception\InvalidCertException
+   */
+  public function call($appMeta, $entity, $action, $params) {
+    $cxn = $this->cxnStore->getByAppId($appMeta['appId']);
+    if (!$cxn) {
+      return array(
+        NULL,
+        array(
+          'is_error' => 1,
+          'error_message' => 'Unrecognized appId',
+        ),
+      );
+    }
+
+    $this->log->info('Call {entity}.{action}: ({cxnId}, {appId}, {appUrl})', array(
+      'entity' => $entity,
+      'action' => $action,
+      'cxnId' => $cxn['cxnId'],
+      'appId' => $cxn['appId'],
+      'appUrl' => $cxn['appUrl'],
+    ));
+
+    if ($this->caCert) {
+      CA::validate($this->caCert, $appMeta['appCert']);
+    }
+    list($respCode, $respData) = $this->doCall($appMeta, $entity, $action, $params, $cxn);
+    return $respData;
+  }
+
+  /**
    * @return Http\HttpInterface
    */
   public function getHttp() {
