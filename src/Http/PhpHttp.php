@@ -13,19 +13,7 @@ class PhpHttp implements HttpInterface {
    *   array($headers, $blob, $code)
    */
   public function send($verb, $url, $blob, $headers = array()) {
-    $opts = array(
-      'http' => array(
-        'method' => $verb,
-        'content' => $blob,
-      ),
-    );
-    if (!empty($headers)) {
-      $encodedHeaders = '';
-      foreach ($headers as $k => $v) {
-        $encodedHeaders .= $k . ": " . $v . "\r\n";
-      }
-      $opts['http']['header'] = $encodedHeaders;
-    }
+    $opts = $this->createStreamOpts($verb, $blob, $headers);
     $context = stream_context_create($opts);
     $respBlob = file_get_contents($url, FALSE, $context);
     $code = NULL;
@@ -39,6 +27,30 @@ class PhpHttp implements HttpInterface {
       }
     }
     return array($headers, $respBlob, $code);
+  }
+
+  /**
+   * @param $verb
+   * @param $blob
+   * @param $headers
+   * @return array
+   */
+  protected function createStreamOpts($verb, $blob, $headers) {
+    $opts = array(
+      'http' => array(
+        'method' => $verb,
+        'content' => $blob,
+      ),
+    );
+    if (!empty($headers)) {
+      $encodedHeaders = '';
+      foreach ($headers as $k => $v) {
+        $encodedHeaders .= $k . ": " . $v . "\r\n";
+      }
+      $opts['http']['header'] = $encodedHeaders;
+      return $opts;
+    }
+    return $opts;
   }
 
 }
