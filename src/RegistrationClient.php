@@ -6,7 +6,6 @@ use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
-use Psr\Log\NullLogger;
 
 class RegistrationClient extends Agent {
 
@@ -16,22 +15,14 @@ class RegistrationClient extends Agent {
   protected $siteUrl;
 
   /**
-   * @var Http\HttpInterface
-   */
-  protected $http;
-
-  /**
-   * @param string $caCert
-   *   The CA certificate data, or NULL ot disable certificate validation.
    * @param CxnStore\CxnStoreInterface $cxnStore
    *   The place to store active connections.
+   * @param string $siteUrl
+   *   The callback URL used when the app wishes to send an API call to the site.
    */
-  public function __construct($caCert, $cxnStore, $siteUrl) {
-    $this->caCert = $caCert;
-    $this->cxnStore = $cxnStore;
+  public function __construct($cxnStore, $siteUrl) {
+    parent::__construct(NULL, $cxnStore);
     $this->siteUrl = $siteUrl;
-    $this->http = new Http\PhpHttp();
-    $this->log = new NullLogger();
   }
 
   /**

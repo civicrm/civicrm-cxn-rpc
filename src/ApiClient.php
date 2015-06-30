@@ -5,7 +5,6 @@ use Civi\Cxn\Rpc\Exception\GarbledMessageException;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
-use Psr\Log\NullLogger;
 
 class ApiClient extends Agent {
   /**
@@ -28,11 +27,10 @@ class ApiClient extends Agent {
    * @param CxnStore\CxnStoreInterface $cxnStore
    */
   public function __construct($appMeta, $cxnStore, $cxnId) {
+    parent::__construct(NULL, $cxnStore);
     $this->appMeta = $appMeta;
-    $this->cxnStore = $cxnStore;
     $this->cxnId = $cxnId;
     $this->http = new Http\PhpHttp();
-    $this->log = new NullLogger();
   }
 
   /**

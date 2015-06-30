@@ -7,6 +7,7 @@ use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
+use Psr\Log\NullLogger;
 
 class Agent {
 
@@ -31,15 +32,21 @@ class Agent {
   protected $certValidator;
 
   /**
+   * @var Http\HttpInterface
+   */
+  protected $http;
+
+  /**
    * @var \Psr\Log\LoggerInterface
    */
   protected $log;
 
-  public function __construct($caCert, $appStore, $cxnStore) {
-    $this->caCert = $caCert;
+  public function __construct($appStore, $cxnStore) {
     $this->appStore = $appStore;
     $this->cxnStore = $cxnStore;
-    $this->certValidator = new DefaultCertificateValidator($this->caCert, NULL, NULL);
+    $this->certValidator = new DefaultCertificateValidator(Constants::getCert(), NULL, NULL);
+    $this->log = new NullLogger();
+    $this->http = new Http\PhpHttp();
   }
 
   /**
@@ -97,6 +104,22 @@ class Agent {
    */
   public function setAppStore($appStore) {
     $this->appStore = $appStore;
+    return $this;
+  }
+
+  /**
+   * @return CertificateValidatorInterface
+   */
+  public function getCertValidator() {
+    return $this->certValidator;
+  }
+
+  /**
+   * @param CertificateValidatorInterface $certValidator
+   */
+  public function setCertValidator($certValidator) {
+    $this->certValidator = $certValidator;
+    return $this;
   }
 
   /**
@@ -111,6 +134,7 @@ class Agent {
    */
   public function setCxnStore($cxnStore) {
     $this->cxnStore = $cxnStore;
+    return $this;
   }
 
   /**
@@ -125,6 +149,7 @@ class Agent {
    */
   public function setLog($log) {
     $this->log = $log;
+    return $this;
   }
 
   /**
