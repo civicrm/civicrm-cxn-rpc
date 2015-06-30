@@ -1,7 +1,6 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-use Civi\Cxn\Rpc\AppStore\SingletonAppStore;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\AppMetasMessage;
 use Civi\Cxn\Rpc\Message\GarbledMessage;
@@ -27,6 +26,11 @@ class Agent {
   protected $cxnStore;
 
   /**
+   * @var CertificateValidatorInterface
+   */
+  protected $certValidator;
+
+  /**
    * @var \Psr\Log\LoggerInterface
    */
   protected $log;
@@ -35,6 +39,7 @@ class Agent {
     $this->caCert = $caCert;
     $this->appStore = $appStore;
     $this->cxnStore = $cxnStore;
+    $this->certValidator = new DefaultCertificateValidator($this->caCert, NULL, NULL);
   }
 
   /**
@@ -71,7 +76,7 @@ class Agent {
         return RegistrationMessage::decode($this->appStore, $blob);
 
       case AppMetasMessage::NAME:
-        return AppMetasMessage::decode($this->caCert, $blob);
+        return AppMetasMessage::decode($this->certValidator, $blob);
 
       default:
         throw new InvalidMessageException("Unrecognized message type.");
@@ -106,20 +111,6 @@ class Agent {
    */
   public function setCxnStore($cxnStore) {
     $this->cxnStore = $cxnStore;
-  }
-
-  /**
-   * @return string
-   */
-  public function getCaCert() {
-    return $this->caCert;
-  }
-
-  /**
-   * @param string $caCert
-   */
-  public function setCaCert($caCert) {
-    $this->caCert = $caCert;
   }
 
   /**

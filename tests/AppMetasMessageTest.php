@@ -18,7 +18,8 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
       ),
     ));
 
-    $appMetas = AppMetasMessage::decode($caCert, $msg->encode())->getData();
+    $certValidator = new DefaultCertificateValidator($caCert);
+    $appMetas = AppMetasMessage::decode($certValidator, $msg->encode())->getData();
     $this->assertEquals('app-1', $appMetas['app-1']['appId']);
   }
 
@@ -38,7 +39,8 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
     ));
 
     try {
-      AppMetasMessage::decode($caCert, $msg->encode())->getData();
+      $certValidator = new DefaultCertificateValidator($caCert);
+      AppMetasMessage::decode($certValidator, $msg->encode())->getData();
       $this->fail('Expected an exception');
     }
     catch (InvalidMessageException $e) {

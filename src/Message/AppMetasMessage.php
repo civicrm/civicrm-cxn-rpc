@@ -3,6 +3,7 @@ namespace Civi\Cxn\Rpc\Message;
 
 use Civi\Cxn\Rpc\BinHex;
 use Civi\Cxn\Rpc\CA;
+use Civi\Cxn\Rpc\CertificateValidatorInterface;
 use Civi\Cxn\Rpc\Exception\CxnException;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\AppStore\AppStoreInterface;
@@ -51,15 +52,13 @@ class AppMetasMessage extends Message {
   }
 
   /**
-   * @param string|NULL $caCert
-   *   PEM-encoded CA. The purported signer will be checked against this CA.
-   *   NULL to disable signature checking.
+   * @param CertificateValidatorInterface|NULL $certValidator
    * @param string $blob
    * @return AppMetasMessage
    *   Validated message.
    * @throws InvalidMessageException
    */
-  public static function decode($caCert, $blob) {
+  public static function decode($certValidator, $blob) {
     $parts = explode(Constants::PROTOCOL_DELIM, $blob, 4);
     if (count($parts) != 4) {
       throw new InvalidMessageException('Invalid message: insufficient parameters');
@@ -69,8 +68,8 @@ class AppMetasMessage extends Message {
       throw new InvalidMessageException('Invalid message: wrong protocol name');
     }
 
-    if ($caCert !== NULL) {
-      CA::validate($wireCert, $caCert);
+    if ($certValidator !== NULL) {
+      $certValidator->validateCert($wireCert);
 
       $wireCertX509 = new \File_X509();
       $wireCertX509->loadX509($wireCert);
