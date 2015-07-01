@@ -13,7 +13,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $this->assertNotEmpty($caKeyPair['publickey']);
     $caCert = CA::create($caKeyPair, '/O=test');
     $this->assertNotEmpty($caCert);
-    $certValidator = new DefaultCertificateValidator($caCert);
+    $certValidator = new DefaultCertificateValidator($caCert, NULL, NULL);
 
     // The application provider sets up a RegistrationServer.
     // The site connects to the registration server.

@@ -44,7 +44,7 @@ class Agent {
   public function __construct($appStore, $cxnStore) {
     $this->appStore = $appStore;
     $this->cxnStore = $cxnStore;
-    $this->certValidator = new DefaultCertificateValidator(Constants::getCert(), NULL, NULL);
+    $this->certValidator = new DefaultCertificateValidator();
     $this->log = new NullLogger();
     $this->http = new Http\PhpHttp();
   }

@@ -137,7 +137,7 @@ class CATest extends \PHPUnit_Framework_TestCase {
     $crlDistKeyPairPems = KeyPair::create();
     $crlDistCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createCSR($crlDistKeyPairPems, '/O=test'));
     $this->assertNotEmpty($crlDistCertPem);
-    $certValidator = new DefaultCertificateValidator($caCertPem);
+    $certValidator = new DefaultCertificateValidator($caCertPem, NULL, NULL);
     $certValidator->validateCert($crlDistCertPem);
 
     // create CRL

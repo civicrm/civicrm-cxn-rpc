@@ -143,7 +143,7 @@ class RegistrationClient extends Agent {
     ));
 
     if ($this->certValidator) {
-      $this->certValidator($appMeta['appCert']);
+      $this->certValidator->validateCert($appMeta['appCert']);
     }
     list($respCode, $respData) = $this->doCall($appMeta, $entity, $action, $params, $cxn);
     return $respData;
