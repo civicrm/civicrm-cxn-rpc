@@ -36,7 +36,7 @@ class CA {
     $x509->makeCA();
     $x509->setEndDate(date('c', strtotime(Constants::CA_DURATION, Time::getTime())));
 
-    $result = $x509->sign($issuer, $subject);
+    $result = $x509->sign($issuer, $subject, Constants::CERT_SIGNATURE_ALGORITHM);
     return $x509->saveX509($result);
   }
 
@@ -62,30 +62,9 @@ class CA {
     file_put_contents($file, $cert);
   }
 
-  public static function createSelfSignedCert($keyPair, $dn) {
-    $privKey = new \Crypt_RSA();
-    $privKey->loadKey($keyPair['privatekey']);
-
-    $pubKey = new \Crypt_RSA();
-    $pubKey->loadKey($keyPair['publickey']);
-    $pubKey->setPublicKey();
-
-    $subject = new \File_X509();
-    $subject->setDN($dn);
-    $subject->setPublicKey($pubKey);
-
-    $issuer = new \File_X509();
-    $issuer->setPrivateKey($privKey);
-    $issuer->setDN($dn);
-
-    $x509 = new \File_X509();
-    $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
-
-    $result = $x509->sign($issuer, $subject);
-    return $x509->saveX509($result);
-  }
-
   /**
+   * Create a CSR for a CiviConnect application.
+   *
    * @param array $keyPair
    *   Array with elements:
    *   - privatekey: string.
@@ -95,7 +74,7 @@ class CA {
    * @return string
    *   CSR data.
    */
-  public static function createCSR($keyPair, $dn) {
+  public static function createAppCSR($keyPair, $dn) {
     $privKey = new \Crypt_RSA();
     $privKey->loadKey($keyPair['privatekey']);
 
@@ -107,8 +86,43 @@ class CA {
     $x509->setPrivateKey($privKey);
     $x509->setDN($dn);
 
-    $csr = $x509->signCSR();
-    return $x509->saveCSR($csr);
+    $x509->loadCSR($x509->saveCSR($x509->signCSR(Constants::CERT_SIGNATURE_ALGORITHM)));
+    $x509->setExtension('id-ce-keyUsage', array('keyEncipherment'));
+
+    $csrData = $x509->signCSR(Constants::CERT_SIGNATURE_ALGORITHM);
+    return $x509->saveCSR($csrData);
+  }
+
+  /**
+   * Create a CSR for an authority that publishes a list of available
+   * applications.
+   *
+   * @param array $keyPair
+   *   Array with elements:
+   *   - privatekey: string.
+   *   - publickey: string.
+   * @param string $dn
+   *   Distinguished name.
+   * @return string
+   *   CSR data.
+   */
+  public static function createDirSvcCSR($keyPair, $dn) {
+    $privKey = new \Crypt_RSA();
+    $privKey->loadKey($keyPair['privatekey']);
+
+    $pubKey = new \Crypt_RSA();
+    $pubKey->loadKey($keyPair['publickey']);
+    $pubKey->setPublicKey();
+
+    $x509 = new \File_X509();
+    $x509->setPrivateKey($privKey);
+    $x509->setDN($dn);
+
+    $x509->loadCSR($x509->saveCSR($x509->signCSR(Constants::CERT_SIGNATURE_ALGORITHM)));
+    $x509->setExtension('id-ce-keyUsage', array('digitalSignature'));
+
+    $csrData = $x509->signCSR(Constants::CERT_SIGNATURE_ALGORITHM);
+    return $x509->saveCSR($csrData);
   }
 
   /**
@@ -131,10 +145,10 @@ class CA {
     $csr->setPrivateKey($privKey);
     $csr->setPublicKey($pubKey);
     $csr->setDN($dn);
-    $csr->loadCSR($csr->saveCSR($csr->signCSR()));
+    $csr->loadCSR($csr->saveCSR($csr->signCSR(Constants::CERT_SIGNATURE_ALGORITHM)));
     $csr->setExtension('id-ce-keyUsage', array('cRLSign'));
 
-    $csrData = $csr->signCSR();
+    $csrData = $csr->signCSR(Constants::CERT_SIGNATURE_ALGORITHM);
     return $csr->saveCSR($csrData);
   }
 
@@ -163,7 +177,7 @@ class CA {
     $x509->setSerialNumber($serialNumber, 10);
     $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
-    $result = $x509->sign($issuer, $subject);
+    $result = $x509->sign($issuer, $subject, Constants::CERT_SIGNATURE_ALGORITHM);
     return $x509->saveX509($result);
   }
 
