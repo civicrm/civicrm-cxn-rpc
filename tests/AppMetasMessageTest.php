@@ -10,7 +10,7 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
     list($caKeyPair, $caCert) = $this->createCA();
     $distPointKeyPair = KeyPair::create();
     $distPointCert = CA::signCSR($caKeyPair, $caCert,
-      CA::createCSR($distPointKeyPair, 'C=US, O=CiviCRM, OU=Civi App Manager, CN=' . Constants::OFFICIAL_APPMETAS_CN));
+      CA::createDirSvcCSR($distPointKeyPair, 'C=US, O=CiviCRM, OU=Civi App Manager, CN=' . Constants::OFFICIAL_APPMETAS_CN));
 
     $msg = new AppMetasMessage($distPointCert, $distPointKeyPair, array(
       'app-1' => array(
@@ -30,7 +30,7 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
   public function testSignedInvalid() {
     list($caKeyPair, $caCert) = $this->createCA();
     $distPointKeyPair = KeyPair::create();
-    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createCSR($distPointKeyPair, 'O=Someone, CN=else'));
+    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createDirSvcCSR($distPointKeyPair, 'O=Someone, CN=else'));
 
     $msg = new AppMetasMessage($distPointCert, $distPointKeyPair, array(
       'app-1' => array(
@@ -55,7 +55,7 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
   public function testUnsignedValid() {
     list($caKeyPair, $caCert) = $this->createCA();
     $distPointKeyPair = KeyPair::create();
-    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createCSR($distPointKeyPair, 'O=Someone, CN=else'));
+    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createDirSvcCSR($distPointKeyPair, 'O=Someone, CN=else'));
 
     $msg = new AppMetasMessage($distPointCert, $distPointKeyPair, array(
       'app-2' => array(
