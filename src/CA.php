@@ -36,7 +36,7 @@ class CA {
     $x509->makeCA();
     $x509->setEndDate(date('c', strtotime(Constants::CA_DURATION, Time::getTime())));
 
-    $result = $x509->sign($issuer, $subject);
+    $result = $x509->sign($issuer, $subject, Constants::CERT_SIGNATURE_ALGORITHM);
     return $x509->saveX509($result);
   }
 
@@ -81,7 +81,7 @@ class CA {
     $x509 = new \File_X509();
     $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
-    $result = $x509->sign($issuer, $subject);
+    $result = $x509->sign($issuer, $subject, Constants::CERT_SIGNATURE_ALGORITHM);
     return $x509->saveX509($result);
   }
 
@@ -107,7 +107,8 @@ class CA {
     $x509->setPrivateKey($privKey);
     $x509->setDN($dn);
 
-    $csr = $x509->signCSR();
+    $csr = $x509->signCSR(Constants::CERT_SIGNATURE_ALGORITHM);
+
     return $x509->saveCSR($csr);
   }
 
@@ -131,10 +132,10 @@ class CA {
     $csr->setPrivateKey($privKey);
     $csr->setPublicKey($pubKey);
     $csr->setDN($dn);
-    $csr->loadCSR($csr->saveCSR($csr->signCSR()));
+    $csr->loadCSR($csr->saveCSR($csr->signCSR(Constants::CERT_SIGNATURE_ALGORITHM)));
     $csr->setExtension('id-ce-keyUsage', array('cRLSign'));
 
-    $csrData = $csr->signCSR();
+    $csrData = $csr->signCSR(Constants::CERT_SIGNATURE_ALGORITHM);
     return $csr->saveCSR($csrData);
   }
 
@@ -163,7 +164,7 @@ class CA {
     $x509->setSerialNumber($serialNumber, 10);
     $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
-    $result = $x509->sign($issuer, $subject);
+    $result = $x509->sign($issuer, $subject, Constants::CERT_SIGNATURE_ALGORITHM);
     return $x509->saveX509($result);
   }
 
