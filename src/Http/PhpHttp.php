@@ -13,7 +13,7 @@ class PhpHttp implements HttpInterface {
    *   array($headers, $blob, $code)
    */
   public function send($verb, $url, $blob, $headers = array()) {
-    $opts = $this->createStreamOpts($verb, $blob, $headers);
+    $opts = $this->createStreamOpts($verb, $url, $blob, $headers);
     $context = stream_context_create($opts);
     $respBlob = file_get_contents($url, FALSE, $context);
     $code = NULL;
@@ -35,7 +35,7 @@ class PhpHttp implements HttpInterface {
    * @param $headers
    * @return array
    */
-  protected function createStreamOpts($verb, $blob, $headers) {
+  protected function createStreamOpts($verb, $url, $blob, $headers) {
     $opts = array(
       'http' => array(
         'method' => $verb,
