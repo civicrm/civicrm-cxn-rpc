@@ -55,7 +55,7 @@ class Constants {
    */
   const OFFICIAL_APPMETAS_CN = 'core:DirectoryService';
 
-  const OFFICIAL_APPMETAS_URL = 'http://cxn.civicrm.org/apps';
+  const OFFICIAL_APPMETAS_URL = 'http://cxn.civicrm.org/cxn/apps';
 
   /**
    * @return string
