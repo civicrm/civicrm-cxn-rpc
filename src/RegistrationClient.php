@@ -150,21 +150,6 @@ class RegistrationClient extends Agent {
   }
 
   /**
-   * @return Http\HttpInterface
-   */
-  public function getHttp() {
-    return $this->http;
-  }
-
-  /**
-   * @param Http\HttpInterface $http
-   */
-  public function setHttp($http) {
-    $this->http = $http;
-  }
-
-
-  /**
    * @param $appMeta
    * @param $entity
    * @param $action

@@ -138,6 +138,21 @@ class Agent {
   }
 
   /**
+   * @return Http\HttpInterface
+   */
+  public function getHttp() {
+    return $this->http;
+  }
+
+  /**
+   * @param Http\HttpInterface $http
+   */
+  public function setHttp($http) {
+    $this->http = $http;
+    return $this;
+  }
+
+  /**
    * @return \Psr\Log\LoggerInterface
    */
   public function getLog() {

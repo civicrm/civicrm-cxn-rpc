@@ -18,11 +18,6 @@ class ApiClient extends Agent {
   protected $cxnId;
 
   /**
-   * @var Http\HttpInterface
-   */
-  protected $http;
-
-  /**
    * @param array $appMeta
    * @param CxnStore\CxnStoreInterface $cxnStore
    */
@@ -67,20 +62,6 @@ class ApiClient extends Agent {
     else {
       throw new InvalidMessageException('Unrecognized message type.');
     }
-  }
-
-  /**
-   * @return Http\HttpInterface
-   */
-  public function getHttp() {
-    return $this->http;
-  }
-
-  /**
-   * @param Http\HttpInterface $http
-   */
-  public function setHttp($http) {
-    $this->http = $http;
   }
 
 }
