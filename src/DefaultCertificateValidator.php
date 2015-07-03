@@ -126,6 +126,12 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
 
     $parsedCert = $certObj->loadX509($certPem);
     if ($crlPem !== NULL) {
+      if (empty($parsedCert)) {
+        throw new InvalidCertException("Identity is invalid. Empty certificate.");
+      }
+      if (empty($parsedCert['tbsCertificate']['serialNumber'])) {
+        throw new InvalidCertException("Identity is invalid. No serial number.");
+      }
       $revoked = $crlObj->getRevoked($parsedCert['tbsCertificate']['serialNumber']->toString());
       if (!empty($revoked)) {
         throw new InvalidCertException("Identity is invalid. Certificate revoked.");

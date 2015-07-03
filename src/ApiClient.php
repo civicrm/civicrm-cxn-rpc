@@ -49,7 +49,7 @@ class ApiClient extends Agent {
     ));
     $cxn = $this->cxnStore->getByCxnId($this->cxnId);
     $req = new StdMessage($cxn['cxnId'], $cxn['secret'],
-      array($entity, $action, $params));
+      array($entity, $action, $params, $this->appMeta['appCert']));
     list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $req->encode(), array(
       'Content-type' => Constants::MIME_TYPE,
     ));

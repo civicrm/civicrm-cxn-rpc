@@ -64,7 +64,15 @@ class ApiServer extends Agent {
     }
 
     try {
-      list ($entity, $action, $params) = $reqMessage->getData();
+      list ($entity, $action, $params, $appCert) = $reqMessage->getData();
+      if ($this->certValidator) {
+        $this->certValidator->validateCert($appCert);
+        $appCertObj = X509Util::loadCert($appCert);
+        $cn = $appCertObj->getDNProp('CN');
+        if (count($cn) != 1 || $cn[0] !== $cxn['appId']) {
+          throw new InvalidMessageException('Invalid message: Submitted certificate does not matched expected appId');
+        }
+      }
       $respData = call_user_func($this->router, $cxn, $entity, $action, $params);
       $this->log->info('Processed API call ({entity}.{action})', array(
         'entity' => $entity,
