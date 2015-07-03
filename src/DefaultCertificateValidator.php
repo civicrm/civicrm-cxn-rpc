@@ -91,9 +91,6 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
     if ($this->getCaCert()) {
       self::validate($certPem, $this->getCaCert(), $this->getCrl(), $this->getCrlDistCert());
     }
-    else {
-      self::validate($certPem, NULL, NULL, NULL);
-    }
   }
 
   protected static function validate($certPem, $caCertPem, $crlPem = NULL, $crlDistCertPem = NULL) {
