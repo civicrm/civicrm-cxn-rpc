@@ -10,7 +10,7 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
     list($caKeyPair, $caCert) = $this->createCA();
     $distPointKeyPair = KeyPair::create();
     $distPointCert = CA::signCSR($caKeyPair, $caCert,
-      CA::createCSR($distPointKeyPair, 'C=US, O=CiviCRM, OU=Civi App Manager, CN=' . Constants::OFFICIAL_APPMETAS_CN));
+      CA::createDirSvcCSR($distPointKeyPair, 'C=US, O=CiviCRM, OU=Civi App Manager, CN=' . Constants::OFFICIAL_APPMETAS_CN));
 
     $msg = new AppMetasMessage($distPointCert, $distPointKeyPair, array(
       'app-1' => array(
@@ -18,7 +18,8 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
       ),
     ));
 
-    $appMetas = AppMetasMessage::decode($caCert, $msg->encode())->getData();
+    $certValidator = new DefaultCertificateValidator($caCert, NULL, NULL);
+    $appMetas = AppMetasMessage::decode($certValidator, $msg->encode())->getData();
     $this->assertEquals('app-1', $appMetas['app-1']['appId']);
   }
 
@@ -29,7 +30,7 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
   public function testSignedInvalid() {
     list($caKeyPair, $caCert) = $this->createCA();
     $distPointKeyPair = KeyPair::create();
-    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createCSR($distPointKeyPair, 'O=Someone, CN=else'));
+    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createDirSvcCSR($distPointKeyPair, 'O=Someone, CN=else'));
 
     $msg = new AppMetasMessage($distPointCert, $distPointKeyPair, array(
       'app-1' => array(
@@ -38,7 +39,8 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
     ));
 
     try {
-      AppMetasMessage::decode($caCert, $msg->encode())->getData();
+      $certValidator = new DefaultCertificateValidator($caCert, NULL, NULL);
+      AppMetasMessage::decode($certValidator, $msg->encode())->getData();
       $this->fail('Expected an exception');
     }
     catch (InvalidMessageException $e) {
@@ -53,7 +55,7 @@ class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
   public function testUnsignedValid() {
     list($caKeyPair, $caCert) = $this->createCA();
     $distPointKeyPair = KeyPair::create();
-    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createCSR($distPointKeyPair, 'O=Someone, CN=else'));
+    $distPointCert = CA::signCSR($caKeyPair, $caCert, CA::createDirSvcCSR($distPointKeyPair, 'O=Someone, CN=else'));
 
     $msg = new AppMetasMessage($distPointCert, $distPointKeyPair, array(
       'app-2' => array(

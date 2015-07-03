@@ -32,6 +32,8 @@ class Constants {
   // 2048 bits / 8 bits-per-byte = 256 bytes
   const RSA_MSG_BYTES = 256;
 
+  const CERT_SIGNATURE_ALGORITHM = 'sha256WithRSAEncryption';
+
   const MIME_TYPE = 'application/x-civi-cxn';
 
   const PROTOCOL_DELIM = ""; // ^A, not visible in some editors

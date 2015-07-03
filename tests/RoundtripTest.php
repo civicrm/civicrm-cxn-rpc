@@ -13,6 +13,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $this->assertNotEmpty($caKeyPair['publickey']);
     $caCert = CA::create($caKeyPair, '/O=test');
     $this->assertNotEmpty($caCert);
+    $certValidator = new DefaultCertificateValidator($caCert, NULL, NULL);
 
     // The application provider sets up a RegistrationServer.
     // The site connects to the registration server.
@@ -21,7 +22,7 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     $appMeta = array(
       'title' => 'My App',
       'appId' => 'app:abcd1234abcd1234',
-      'appCert' => CA::signCSR($caKeyPair, $caCert, CA::createCSR($appKeyPair, '/O=Application Provider')),
+      'appCert' => CA::signCSR($caKeyPair, $caCert, CA::createAppCSR($appKeyPair, '/O=Application Provider')),
       'appUrl' => 'http://app-a.com/cxn',
       'perm' => array(
         'api' => array(),
@@ -30,9 +31,11 @@ class RoundtripTest extends \PHPUnit_Framework_TestCase {
     );
     $appCxnStore = new ArrayCxnStore();
     $regServer = new RegistrationServer($appMeta, $appKeyPair, $appCxnStore);
+    $regServer->setCertValidator($certValidator);
 
     $siteCxnStore = new ArrayCxnStore();
-    $regClient = new RegistrationClient($caCert, $siteCxnStore, 'http://example.org/civicrm/cxn/api');
+    $regClient = new RegistrationClient($siteCxnStore, 'http://example.org/civicrm/cxn/api');
+    $regClient->setCertValidator($certValidator);
     $regClient->setHttp(new Http\FakeHttp(function ($verb, $url, $blob) use ($regServer, $test) {
       $test->assertEquals('http://app-a.com/cxn', $url);
       return $regServer->handle($blob)->toHttp();

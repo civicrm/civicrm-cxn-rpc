@@ -8,11 +8,11 @@ class CATest extends \PHPUnit_Framework_TestCase {
   public function testCRL_SignedByCA() {
     // create CA
     $caKeyPairPems = KeyPair::create();
-    $caCertPerm = CA::create($caKeyPairPems, '/O=test');
-    $this->assertNotEmpty($caCertPerm);
+    $caCertPem = CA::create($caKeyPairPems, '/O=test');
+    $this->assertNotEmpty($caCertPem);
 
     // create CRL
-    $caCertObj = X509Util::loadCert($caCertPerm, $caKeyPairPems);
+    $caCertObj = X509Util::loadCert($caCertPem, $caKeyPairPems);
     $crlObj = new \File_X509();
     $crlObj->setSerialNumber(1, 10);
     $crlObj->setEndDate('+2 days');
@@ -21,10 +21,11 @@ class CATest extends \PHPUnit_Framework_TestCase {
 
     // create cert
     $appKeyPairPems = KeyPair::create();
-    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPerm, CA::createCSR($appKeyPairPems, '/O=Application Provider'));
+    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createAppCSR($appKeyPairPems, '/O=Application Provider'));
 
     // validate cert - OK. (Note: would throw exception if invalid)
-    CA::validate($appCertPem, $caCertPerm, $crlPem);
+    $certValidator = new DefaultCertificateValidator($caCertPem, NULL, $crlPem);
+    $certValidator->validateCert($appCertPem);
   }
 
   public function testCRL_SignedByDist() {
@@ -51,10 +52,11 @@ class CATest extends \PHPUnit_Framework_TestCase {
 
     // create cert
     $appKeyPair = KeyPair::create();
-    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createCSR($appKeyPair, '/O=Application Provider'), 4321);
+    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createAppCSR($appKeyPair, '/O=Application Provider'), 4321);
 
     // validate cert - OK
-    CA::validate($appCertPem, $caCertPem, $crlPem, $crlDistCertPem); // throws exception if invalid
+    $certValidator = new DefaultCertificateValidator($caCertPem, $crlDistCertPem, $crlPem);
+    $certValidator->validateCert($appCertPem); // throws exception if invalid
 
     // revoke cert
     $crlObj->setRevokedCertificateExtension(4321, 'id-ce-cRLReasons', 'privilegeWithdrawn');
@@ -64,7 +66,8 @@ class CATest extends \PHPUnit_Framework_TestCase {
 
     // check for exception
     try {
-      CA::validate($appCertPem, $caCertPem, $crlPem, $crlDistCertPem);
+      $certValidator = new DefaultCertificateValidator($caCertPem, $crlDistCertPem, $crlPem);
+      $certValidator->validateCert($appCertPem);
       $this->fail('Expected InvalidCertException, but no exception was reported.');
     }
     catch (InvalidCertException $e) {
@@ -105,11 +108,12 @@ class CATest extends \PHPUnit_Framework_TestCase {
 
     // create cert
     $appKeyPair = KeyPair::create();
-    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createCSR($appKeyPair, '/O=Application Provider'), 4321);
+    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createAppCSR($appKeyPair, '/O=Application Provider'), 4321);
 
     // check for exception
     try {
-      CA::validate($appCertPem, $caCertPem, $crlPem, $crlDistCertPem);
+      $certValidator = new DefaultCertificateValidator($caCertPem, $crlDistCertPem, $crlPem);
+      $certValidator->validateCert($appCertPem);
       $this->fail('Expected InvalidCertException, but no exception was reported.');
     }
     catch (InvalidCertException $e) {
@@ -131,9 +135,10 @@ class CATest extends \PHPUnit_Framework_TestCase {
     // create would-be CRL dist authority -- but not really authorized for signing CRLs.
     // note createCSR() instead of createCrlDistCSR().
     $crlDistKeyPairPems = KeyPair::create();
-    $crlDistCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createCSR($crlDistKeyPairPems, '/O=test'));
+    $crlDistCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createAppCSR($crlDistKeyPairPems, '/O=test'));
     $this->assertNotEmpty($crlDistCertPem);
-    CA::validate($crlDistCertPem, $caCertPem);
+    $certValidator = new DefaultCertificateValidator($caCertPem, NULL, NULL);
+    $certValidator->validateCert($crlDistCertPem);
 
     // create CRL
     $crlDistCertObj = X509Util::loadCert($crlDistCertPem, $crlDistKeyPairPems, $caCertPem);
@@ -148,11 +153,12 @@ class CATest extends \PHPUnit_Framework_TestCase {
 
     // create cert
     $appKeyPair = KeyPair::create();
-    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createCSR($appKeyPair, '/O=Application Provider'), 4321);
+    $appCertPem = CA::signCSR($caKeyPairPems, $caCertPem, CA::createAppCSR($appKeyPair, '/O=Application Provider'), 4321);
 
     // validate cert - fails due to improper CRL
     try {
-      CA::validate($appCertPem, $caCertPem, $crlPem, $crlDistCertPem);
+      $certValidator = new DefaultCertificateValidator($caCertPem, $crlDistCertPem, $crlPem);
+      $certValidator->validateCert($appCertPem);
       $this->fail('Expected InvalidCertException, but no exception was reported.');
     }
     catch (InvalidCertException $e) {

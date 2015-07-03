@@ -4,7 +4,6 @@ namespace Civi\Cxn\Rpc;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
-use Psr\Log\NullLogger;
 
 class ApiServer extends Agent {
 
@@ -17,9 +16,8 @@ class ApiServer extends Agent {
    * @param CxnStore\CxnStoreInterface $cxnStore
    */
   public function __construct($cxnStore, $router = NULL) {
-    $this->cxnStore = $cxnStore;
+    parent::__construct(NULL, $cxnStore);
     $this->router = $router;
-    $this->log = new NullLogger();
   }
 
   /**

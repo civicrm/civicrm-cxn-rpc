@@ -7,7 +7,6 @@ use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
-use Psr\Log\NullLogger;
 
 /**
  * Class RegistrationServer
@@ -35,8 +34,8 @@ class RegistrationServer extends Agent {
       throw new CxnException("Missing cxnStore");
     }
 
-    $this->cxnStore = $cxnStore;
-    $this->log = new NullLogger();
+    parent::__construct(NULL, $cxnStore);
+
     $this->appStore = new SingletonAppStore($appMeta['appId'], $appMeta, $keyPair['privatekey'], $keyPair['publickey']);
   }
 

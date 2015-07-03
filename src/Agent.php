@@ -1,13 +1,13 @@
 <?php
 namespace Civi\Cxn\Rpc;
 
-use Civi\Cxn\Rpc\AppStore\SingletonAppStore;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\AppMetasMessage;
 use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
+use Psr\Log\NullLogger;
 
 class Agent {
 
@@ -27,14 +27,26 @@ class Agent {
   protected $cxnStore;
 
   /**
+   * @var CertificateValidatorInterface
+   */
+  protected $certValidator;
+
+  /**
+   * @var Http\HttpInterface
+   */
+  protected $http;
+
+  /**
    * @var \Psr\Log\LoggerInterface
    */
   protected $log;
 
-  public function __construct($caCert, $appStore, $cxnStore) {
-    $this->caCert = $caCert;
+  public function __construct($appStore, $cxnStore) {
     $this->appStore = $appStore;
     $this->cxnStore = $cxnStore;
+    $this->certValidator = new DefaultCertificateValidator();
+    $this->log = new NullLogger();
+    $this->http = new Http\PhpHttp();
   }
 
   /**
@@ -71,7 +83,7 @@ class Agent {
         return RegistrationMessage::decode($this->appStore, $blob);
 
       case AppMetasMessage::NAME:
-        return AppMetasMessage::decode($this->caCert, $blob);
+        return AppMetasMessage::decode($this->certValidator, $blob);
 
       default:
         throw new InvalidMessageException("Unrecognized message type.");
@@ -92,6 +104,22 @@ class Agent {
    */
   public function setAppStore($appStore) {
     $this->appStore = $appStore;
+    return $this;
+  }
+
+  /**
+   * @return CertificateValidatorInterface
+   */
+  public function getCertValidator() {
+    return $this->certValidator;
+  }
+
+  /**
+   * @param CertificateValidatorInterface $certValidator
+   */
+  public function setCertValidator($certValidator) {
+    $this->certValidator = $certValidator;
+    return $this;
   }
 
   /**
@@ -106,20 +134,7 @@ class Agent {
    */
   public function setCxnStore($cxnStore) {
     $this->cxnStore = $cxnStore;
-  }
-
-  /**
-   * @return string
-   */
-  public function getCaCert() {
-    return $this->caCert;
-  }
-
-  /**
-   * @param string $caCert
-   */
-  public function setCaCert($caCert) {
-    $this->caCert = $caCert;
+    return $this;
   }
 
   /**
@@ -134,6 +149,7 @@ class Agent {
    */
   public function setLog($log) {
     $this->log = $log;
+    return $this;
   }
 
   /**
