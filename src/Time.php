@@ -22,7 +22,12 @@ class Time {
    * @return int
    */
   public static function getTime() {
-    return time() + self::$_delta;
+    if (self::$_delta === 0) {
+      return time();
+    }
+    else {
+      return floor(microtime(1) + self::$_delta);
+    }
   }
 
   /**
@@ -35,7 +40,7 @@ class Time {
    *
    */
   public static function setTime($newDateTime) {
-    self::$_delta = strtotime($newDateTime) - time();
+    self::$_delta = strtotime($newDateTime) - microtime(1);
     return self::getTime();
   }
 
