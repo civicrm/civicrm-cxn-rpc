@@ -30,6 +30,7 @@ class ApiClient extends Agent {
   /**
    * @param array $appMeta
    * @param CxnStore\CxnStoreInterface $cxnStore
+   * @param string $cxnId
    */
   public function __construct($appMeta, $cxnStore, $cxnId) {
     parent::__construct(NULL, $cxnStore);
@@ -39,6 +40,10 @@ class ApiClient extends Agent {
   }
 
   /**
+   * Call a remote API.
+   *
+   * Protocol errors will be reported as exceptions.
+   *
    * @param string $entity
    * @param string $action
    * @param array $params
@@ -46,7 +51,7 @@ class ApiClient extends Agent {
    * @throws InvalidMessageException
    * @return mixed
    */
-  public function call($entity, $action, $params) {
+  public function call($entity, $action, $params = array()) {
     $this->log->debug("Send API call: {entity}.{action} over {cxnId}", array(
       'entity' => $entity,
       'action' => $action,
@@ -71,6 +76,37 @@ class ApiClient extends Agent {
     }
     else {
       throw new InvalidMessageException('Unrecognized message type.');
+    }
+  }
+
+  /**
+   * Call a remote API.
+   *
+   * This is the same as call(), except that it wraps the request in a try-catch
+   * block and converts any exceptions to array(is_error=>...) format.
+   *
+   * @param $entity
+   * @param $action
+   * @param array $params
+   * @return array|mixed
+   */
+  public function callSafe($entity, $action, $params = array()) {
+    try {
+      return $this->call($entity, $action, $params);
+    }
+    catch (GarbledMessageException $e) {
+      return array(
+        'is_error' => 1,
+        'error_message' => "Client exception: " . $e->getMessage(),
+        'garbled_message' => substr($e->getGarbledMessage()->getData(), 0, 77),
+      );
+    }
+    catch (\Exception $e) {
+      return array(
+        'is_error' => 1,
+        'error_message' => "Client exception: " . $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+      );
     }
   }
 
