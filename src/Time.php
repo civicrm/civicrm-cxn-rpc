@@ -51,4 +51,13 @@ class Time {
     self::$_delta = 0;
   }
 
+  /**
+   * @return \DateTime
+   */
+  public static function createDateTime() {
+    $d = new \DateTime();
+    $d->setTimestamp(self::getTime());
+    return $d;
+  }
+
 }
