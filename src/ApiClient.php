@@ -13,6 +13,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\GarbledMessageException;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
+use Civi\Cxn\Rpc\Http\ViaPortHttp;
 use Civi\Cxn\Rpc\Message\GarbledMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 
@@ -60,7 +61,10 @@ class ApiClient extends Agent {
     $cxn = $this->cxnStore->getByCxnId($this->cxnId);
     $req = new StdMessage($cxn['cxnId'], $cxn['secret'],
       array($entity, $action, $params, $this->appMeta['appCert']));
-    list($respHeaders, $respCiphertext, $respCode) = $this->http->send('POST', $cxn['siteUrl'], $req->encode(), array(
+
+    $http = empty($cxn['viaPort']) ? $this->http : new ViaPortHttp($this->http, $cxn['viaPort']);
+
+    list($respHeaders, $respCiphertext, $respCode) = $http->send('POST', $cxn['siteUrl'], $req->encode(), array(
       'Content-type' => Constants::MIME_TYPE,
     ));
     $respMessage = $this->decode(array(StdMessage::NAME, GarbledMessage::NAME), $respCiphertext);
