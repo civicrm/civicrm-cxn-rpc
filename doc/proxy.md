@@ -5,11 +5,11 @@ by end-users) and *CiviConnect applications* (value-added services).
 
 A *CiviConnect application* **must** be accessible on the public Internet.
 
-A *CiviCRM site* **should** be accessible on the public Internet. This ensures that
-constituents can access the site (to make donations, sign up for newsletters, etc),
+A *CiviCRM site* **should** be accessible on the public Internet. This is typical. It ensures
+that constituents can access the site (to make donations, sign up for newsletters, etc),
 and it enables applications to send updates to the site.
 
-However, there are a few circumstances where a CiviCRM site is not be
+However, there are a few circumstances where a CiviCRM site may not be
 accessible on the public Internet, such as:
 
  1. *Localhost*: A developer or designer works on a local test site before
