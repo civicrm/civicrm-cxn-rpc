@@ -11,7 +11,7 @@ parties:
    called `SaveTheWhales.org`.
  * "Applications" are online properties with value-added services. They
    supplement the sites.  There are only a few applications, and they must
-   certified to go live.  In the tests and comments, we will refer to an
+   be certified to go live.  In the tests and comments, we will refer to an
    example service called `AddressCleanup.com`.
  * An arbiter ("Directory Service" and "Certificate Authority") which
    publishes and certifies a list of available applications. In the
@@ -29,16 +29,16 @@ Protocol v0.2
 
 There are three substantive messages which may be exchanged:
 
- * [AppMetasMessage](src/Message/AppMetasMessage.php) (`cxn.civicrm.org` => `SaveTheWhales.org`)
+ * [`AppMetasMessage`](src/Message/AppMetasMessage.php) (`cxn.civicrm.org` => `SaveTheWhales.org`)
    * Use case: A CiviCRM site connects to `cxn.civicrm.org` and requests a list of available applications.
    * Payload: The list of applications includes the title, description, registration URL, and X.509 certificate for each.
    * Crypto: The payload and ttl are signed by `cxn.civicrm.org` (RSA, 2048-bit key) and transferred in plaintext.
- * [RegistrationMessage](src/Message/RegistrationMessage.php) (`SaveTheWhales.org` => `AddressCleanup.com`)
+ * [`RegistrationMessage`](src/Message/RegistrationMessage.php) (`SaveTheWhales.org` => `AddressCleanup.com`)
    * Use case: A CiviCRM site registers with an application.
    * Payload: The registration includes a unique identifer for the connection, a shared secret, and a callback URL. (More discussion below.)
    * Crypto: A temporary secret is generated and encrypted with the application's public key (RSA-2048). The payload is encrypted (AES-CBC), dated (ttl), and signed (HMAC-SHA256) using the secret. (See also: [AesHelper](src/AesHelper.php), StdMessage)
    * Note: The registration *request* uses RegistrationMessage, but the *acknowledgement* uses StdMessage.
- * [StdMessage](src/Message/StdMessage.php) (`AddressCleanup.com` => `SaveTheWhales.org`)
+ * [`StdMessage`](src/Message/StdMessage.php) (`AddressCleanup.com` => `SaveTheWhales.org`)
    * Use case: Any other secure message exchange between site and application.
    * Use case (typical): An application sends an API call to a site. The site returns a response.
    * Payload (typical): An entity+action+params tuple (as in Civi APIv3).
@@ -47,12 +47,12 @@ There are three substantive messages which may be exchanged:
 
 Additionally, there are two non-substantive message types. They should *not* be used for major activity but may assist in advisory error-reports:
 
- * [InsecureMessage](src/Message/InsecureMessage.php)
-   * Use case: A server (RegistrationServer or ApiServer) receives an incoming message but cannot authenticate or decrypt it. The server responds with a NACK using InsecureMessage.
+ * [`InsecureMessage`](src/Message/InsecureMessage.php)
+   * Use case: A server (`RegistrationServer` or `ApiServer`) receives an incoming message but cannot authenticate or decrypt it. The server responds with a NACK using `InsecureMessage`.
    * Payload: An error message.
    * Crypto: Unencrypted and unsigned.
- * [GarbledMessage](src/Message/GarbledMessage.php)
-   * Use case: A client (RegistrationClient or ApiClient) receives a response but cannot decode it. (Ex: The server was buggy or badly configured, and PHP error messages were dumped into the ciphertext.)
+ * [`GarbledMessage`](src/Message/GarbledMessage.php)
+   * Use case: A client (`RegistrationClient` or `ApiClient`) receives a response but cannot decode it. (Ex: The server was buggy or badly configured, and PHP error messages were dumped into the ciphertext.)
    * Payload: Unknown
    * Crypto: Unknown
 
@@ -66,7 +66,7 @@ Some considerations:
 Protocol v0.2: RegistrationMessage
 ----------------------------------
 
-The RegistrationMessage format is used whenever the site (`SaveTheWhales.org`) sends a message to the application (`AddressCleanup.com`). The most common case is to send a `Cxn.register` request.
+The `RegistrationMessage` format is used whenever a site (`SaveTheWhales.org`) sends a message to an application (`AddressCleanup.com`). The most common case is to send a `Cxn.register` request.
 
 The message data includes the following keys:
 
@@ -96,9 +96,8 @@ Protocol v0.1
 
 Never published or completed. Broadly, the v0.1 protocol relied on certificates for both client and server, and used RSA to encrypt all messages. v0.1 had a few issues:
 
- * If the certificate authority were compromised, then the high trust placed in the CA could be abused to imitate both client and server, enabling man-in-the-middle attacks against existing connections.
+ * If the certificate authority were compromised, then the high trust placed in the CA could be abused to compromise existing connections.
  * Using RSA for everything meant that the crypto was slower for typical API calls.
- * RSA seems to be best when combined with session-key negotiaion (e.g DH) but I don't remember the details of DH well enough to use/adapt it (without delaying the schedule).
 
 Base Classes
 ------------
