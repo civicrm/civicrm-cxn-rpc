@@ -27,12 +27,14 @@ data-exchanges.
 Protocol v0.2
 -------------
 
-There are three substantive messages which may be exchanged:
+CiviConnect Protocol v0.2 defines the major use-cases and message-exchanges among sites, applications, and arbiters. The use-cases are:
 
- * [`AppMetasMessage`](src/Message/AppMetasMessage.php) (`cxn.civicrm.org` => `SaveTheWhales.org`)
-   * Use case: A CiviCRM site connects to `cxn.civicrm.org` and requests a list of available applications.
-   * Payload: The list of applications includes the title, description, registration URL, and X.509 certificate for each.
-   * Crypto: The payload and ttl are signed by `cxn.civicrm.org` (RSA, 2048-bit key) and transferred in plaintext.
+ *  _Registration Use-Case_: A site (`SaveTheWhales.org`) creates a new connection to an application (`AddressCleanup.com`) by POSTing a `RegistrationMessage`. `AddressCleanup.com` responds with a `StdMessage`.
+ * _CiviCRM API Use-Case_: An application (`AddressCleanup.com`) reads or writes records on a CiviCRM site (`SaveTheWhales.org`) by POSTing a `StdMessage`. `SaveTheWhales.org` responds with a `StdMessage`.
+  * _Service Discovery Use-Case_: A site (`SaveTheWhales.org`) gets a list of available applications by sending a basic HTTP GET request to the arbiter's directory service (`https://cxn.civicrm.org/cxn/apps`). The arbiter responds withan `AppMetasMessage`.
+
+The most important message types are:
+
  * [`RegistrationMessage`](src/Message/RegistrationMessage.php) (`SaveTheWhales.org` => `AddressCleanup.com`)
    * Use case: A CiviCRM site registers with an application.
    * Payload: The registration includes a unique identifer for the connection, a shared secret, and a callback URL. (More discussion below.)
@@ -43,16 +45,22 @@ There are three substantive messages which may be exchanged:
    * Use case (typical): An application sends an API call to a site. The site returns a response.
    * Payload (typical): An entity+action+params tuple (as in Civi APIv3).
    * Crypto: The shared-secret is used to generate an AES encryption key and HMAC signing key. The payload and ttl are encrypted with AES-CBC (256-bit), and the ciphertext is signed with HMAC-SHA256. (See also: [AesHelper](src/AesHelper.php)) The same scheme is used for requests and responses.
-      * For *requests*, the application's latest cert is transmitted and validated to ensure that the application is still trusted by the arbiter.
+    * Note: When an application POSTs a `StdMessage`, it includes a copy of the latest cert. It is validated by the recipient to ensure that the application is still trusted by the arbiter.
+ * [`AppMetasMessage`](src/Message/AppMetasMessage.php) (`cxn.civicrm.org` => `SaveTheWhales.org`)
+   * Use case: A CiviCRM site connects to `cxn.civicrm.org` and requests a list of available applications.
+   * Payload: The list of applications includes the title, description, registration URL, and X.509 certificate for each.
+   * Crypto: The payload and ttl are signed by `cxn.civicrm.org` (RSA, 2048-bit key) and transferred in plaintext.
 
 Additionally, there are two non-substantive message types. They should *not* be used for major activity but may assist in advisory error-reports:
 
  * [`InsecureMessage`](src/Message/InsecureMessage.php)
-   * Use case: A server (`RegistrationServer` or `ApiServer`) receives an incoming message but cannot authenticate or decrypt it. The server responds with a NACK using `InsecureMessage`.
+   * Use case: A server (`RegistrationServer` or `ApiServer`) receives an incoming message but cannot authenticate or decrypt it. The server must respond with a NACK, but it lacks sufficient information to securely communicate it. It sends an `InsecureMessage`.
    * Payload: An error message.
    * Crypto: Unencrypted and unsigned.
  * [`GarbledMessage`](src/Message/GarbledMessage.php)
-   * Use case: A client (`RegistrationClient` or `ApiClient`) receives a response but cannot decode it. (Ex: The server was buggy or badly configured, and PHP error messages were dumped into the ciphertext.)
+   * Use case: A client (`RegistrationClient` or `ApiClient`) receives a response but cannot decode it.
+      * (Ex: The server was buggy or badly configured, and PHP error messages were dumped into the ciphertext.)
+      * (Ex: A man-in-the-middle interfered with the message transmission.)
    * Payload: Unknown
    * Crypto: Unknown
 
