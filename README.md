@@ -24,6 +24,19 @@ certifying the application's public-key) and revocation (by revoking the
 application's public-key) but cannot participate in any other
 data-exchanges.
 
+Test suite
+----------
+
+The test suite for `civicrm-cxn-rpc` is implemented in PHPUnit. It is
+generallly executed with PHPUnit 4, e.g.
+
+```
+git clone https://github.com/civicrm/civicrm-cxn-rpc
+cd civicrm-cxn-rpc
+composer install
+phpunit4
+```
+
 Protocol v0.2
 -------------
 
