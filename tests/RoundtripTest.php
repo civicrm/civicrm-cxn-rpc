@@ -13,7 +13,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\CxnStore\ArrayCxnStore;
 
-class RoundtripTest extends \PHPUnit_Framework_TestCase {
+class RoundtripTest extends \PHPUnit\Framework\TestCase {
 
   public function testRoundtrip() {
     $test = $this;

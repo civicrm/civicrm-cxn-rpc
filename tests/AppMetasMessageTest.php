@@ -14,7 +14,7 @@ namespace Civi\Cxn\Rpc;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 use Civi\Cxn\Rpc\Message\AppMetasMessage;
 
-class AppMetasMessageTest extends \PHPUnit_Framework_TestCase {
+class AppMetasMessageTest extends \PHPUnit\Framework\TestCase {
 
   public function testSignedValid() {
     list($caKeyPair, $caCert) = $this->createCA();

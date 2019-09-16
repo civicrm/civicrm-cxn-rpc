@@ -17,7 +17,7 @@ use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
-class RegistrationServerTest extends \PHPUnit_Framework_TestCase {
+class RegistrationServerTest extends \PHPUnit\Framework\TestCase {
 
   const APP_ID = 'app:org.civicrm.demoapp';
 

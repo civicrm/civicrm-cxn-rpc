@@ -13,7 +13,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\InvalidCertException;
 
-class CATest extends \PHPUnit_Framework_TestCase {
+class CATest extends \PHPUnit\Framework\TestCase {
 
   public function testCRL_SignedByCA() {
     // create CA

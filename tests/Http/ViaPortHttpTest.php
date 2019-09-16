@@ -19,7 +19,7 @@ use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
 use Psr\Log\NullLogger;
 
-class ViaPortHttpTest extends \PHPUnit_Framework_TestCase {
+class ViaPortHttpTest extends \PHPUnit\Framework\TestCase {
 
   protected $lastCall;
 
