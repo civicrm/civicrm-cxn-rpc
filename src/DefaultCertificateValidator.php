@@ -151,7 +151,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
     if (!$certObj->validateSignature()) {
       throw new InvalidCertException("Identity is invalid. Certificate is not signed by proper CA.");
     }
-    if (!$certObj->validateDate(Time::getTime())) {
+    if (!$certObj->validateDate(Time::getTimeObject())) {
       throw new ExpiredCertException("Identity is invalid. Certificate expired.");
     }
   }
