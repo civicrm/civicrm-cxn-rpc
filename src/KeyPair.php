@@ -19,7 +19,7 @@ class KeyPair {
    *   - publickey: string.
    */
   public static function create() {
-    $rsa = new \Crypt_RSA();
+    $rsa = new \phpseclib\Crypt\RSA();
     return $rsa->createKey(Constants::RSA_KEYLEN);
   }
 

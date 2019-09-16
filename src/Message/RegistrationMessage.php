@@ -29,7 +29,7 @@ use Civi\Cxn\Rpc\Constants;
  * real data. This will allow us to expand the registration data (i.e.
  * passing along more fields) without changing the protocol.
  *
- * Note: Crypt_RSA can encrypt oversized messages using an adhoc block
+ * Note: \phpseclib\Crypt\RSA can encrypt oversized messages using an adhoc block
  * mode that smells like ECB. This doesn't compromise confidentiality,
  * but long messages could have their ciphertext spliced -- compromising
  * integrity.
@@ -114,10 +114,10 @@ class RegistrationMessage extends Message {
    * @param string $key
    * @param string $type
    *   'public' or 'private'
-   * @return \Crypt_RSA
+   * @return \phpseclib\Crypt\RSA
    */
   public static function getRsa($key, $type) {
-    $rsa = new \Crypt_RSA();
+    $rsa = new \phpseclib\Crypt\RSA();
     $rsa->loadKey($key);
     if ($type == 'public') {
       $rsa->setPublicKey();

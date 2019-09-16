@@ -27,22 +27,22 @@ class CA {
    *   Certificate data.
    */
   public static function create($keyPair, $dn) {
-    $privKey = new \Crypt_RSA();
+    $privKey = new \phpseclib\Crypt\RSA();
     $privKey->loadKey($keyPair['privatekey']);
 
-    $pubKey = new \Crypt_RSA();
+    $pubKey = new \phpseclib\Crypt\RSA();
     $pubKey->loadKey($keyPair['publickey']);
     $pubKey->setPublicKey();
 
-    $subject = new \File_X509();
+    $subject = new \phpseclib\File\X509();
     $subject->setDN($dn);
     $subject->setPublicKey($pubKey);
 
-    $issuer = new \File_X509();
+    $issuer = new \phpseclib\File\X509();
     $issuer->setPrivateKey($privKey);
     $issuer->setDN($dn);
 
-    $x509 = new \File_X509();
+    $x509 = new \phpseclib\File\X509();
     $x509->makeCA();
     $x509->setEndDate(date('c', strtotime(Constants::CA_DURATION, Time::getTime())));
 
@@ -85,14 +85,14 @@ class CA {
    *   CSR data.
    */
   public static function createAppCSR($keyPair, $dn) {
-    $privKey = new \Crypt_RSA();
+    $privKey = new \phpseclib\Crypt\RSA();
     $privKey->loadKey($keyPair['privatekey']);
 
-    $pubKey = new \Crypt_RSA();
+    $pubKey = new \phpseclib\Crypt\RSA();
     $pubKey->loadKey($keyPair['publickey']);
     $pubKey->setPublicKey();
 
-    $x509 = new \File_X509();
+    $x509 = new \phpseclib\File\X509();
     $x509->setPrivateKey($privKey);
     $x509->setDN($dn);
 
@@ -117,14 +117,14 @@ class CA {
    *   CSR data.
    */
   public static function createDirSvcCSR($keyPair, $dn) {
-    $privKey = new \Crypt_RSA();
+    $privKey = new \phpseclib\Crypt\RSA();
     $privKey->loadKey($keyPair['privatekey']);
 
-    $pubKey = new \Crypt_RSA();
+    $pubKey = new \phpseclib\Crypt\RSA();
     $pubKey->loadKey($keyPair['publickey']);
     $pubKey->setPublicKey();
 
-    $x509 = new \File_X509();
+    $x509 = new \phpseclib\File\X509();
     $x509->setPrivateKey($privKey);
     $x509->setDN($dn);
 
@@ -144,14 +144,14 @@ class CA {
    *   PEM-encoded CSR.
    */
   public static function createCrlDistCSR($keyPair, $dn) {
-    $privKey = new \Crypt_RSA();
+    $privKey = new \phpseclib\Crypt\RSA();
     $privKey->loadKey($keyPair['privatekey']);
 
-    $pubKey = new \Crypt_RSA();
+    $pubKey = new \phpseclib\Crypt\RSA();
     $pubKey->loadKey($keyPair['publickey']);
     $pubKey->setPublicKey();
 
-    $csr = new \File_X509();
+    $csr = new \phpseclib\File\X509();
     $csr->setPrivateKey($privKey);
     $csr->setPublicKey($pubKey);
     $csr->setDN($dn);
@@ -173,17 +173,17 @@ class CA {
    *   PEM-encoded cert.
    */
   public static function signCSR($caKeyPair, $caCert, $csr, $serialNumber = 1) {
-    $privKey = new \Crypt_RSA();
+    $privKey = new \phpseclib\Crypt\RSA();
     $privKey->loadKey($caKeyPair['privatekey']);
 
-    $subject = new \File_X509();
+    $subject = new \phpseclib\File\X509();
     $subject->loadCSR($csr);
 
-    $issuer = new \File_X509();
+    $issuer = new \phpseclib\File\X509();
     $issuer->loadX509($caCert);
     $issuer->setPrivateKey($privKey);
 
-    $x509 = new \File_X509();
+    $x509 = new \phpseclib\File\X509();
     $x509->setSerialNumber($serialNumber, 10);
     $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
