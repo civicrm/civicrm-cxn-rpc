@@ -35,18 +35,25 @@ class CA {
     $pubKey->setPublicKey();
 
     $subject = new \phpseclib\File\X509();
-    $subject->setDN($dn);
+    if (!$subject->setDN($dn)) {
+      throw new \InvalidArgumentException("Malformed DN: $dn");
+    }
     $subject->setPublicKey($pubKey);
 
     $issuer = new \phpseclib\File\X509();
     $issuer->setPrivateKey($privKey);
-    $issuer->setDN($dn);
+    if (!$issuer->setDN($dn)) {
+      throw new \InvalidArgumentException("Malformed DN: $dn");
+    }
 
     $x509 = new \phpseclib\File\X509();
     $x509->makeCA();
     $x509->setEndDate(date('c', strtotime(Constants::CA_DURATION, Time::getTime())));
 
     $result = $x509->sign($issuer, $subject, Constants::CERT_SIGNATURE_ALGORITHM);
+    if ($result === FALSE) {
+      throw new \RuntimeException("Failed to generate CA certificate for $dn ($subject->dn)");
+    }
     return $x509->saveX509($result);
   }
 
@@ -94,7 +101,9 @@ class CA {
 
     $x509 = new \phpseclib\File\X509();
     $x509->setPrivateKey($privKey);
-    $x509->setDN($dn);
+    if (!$x509->setDN($dn)) {
+      throw new \InvalidArgumentException("Malformed DN: $dn");
+    }
 
     $x509->loadCSR($x509->saveCSR($x509->signCSR(Constants::CERT_SIGNATURE_ALGORITHM)));
     $x509->setExtension('id-ce-keyUsage', array('keyEncipherment'));
@@ -126,7 +135,9 @@ class CA {
 
     $x509 = new \phpseclib\File\X509();
     $x509->setPrivateKey($privKey);
-    $x509->setDN($dn);
+    if (!$x509->setDN($dn)) {
+      throw new \InvalidArgumentException("Malformed DN: $dn");
+    }
 
     $x509->loadCSR($x509->saveCSR($x509->signCSR(Constants::CERT_SIGNATURE_ALGORITHM)));
     $x509->setExtension('id-ce-keyUsage', array('digitalSignature'));
@@ -154,11 +165,16 @@ class CA {
     $csr = new \phpseclib\File\X509();
     $csr->setPrivateKey($privKey);
     $csr->setPublicKey($pubKey);
-    $csr->setDN($dn);
+    if (!$csr->setDN($dn)) {
+      throw new \InvalidArgumentException("Malformed DN: $dn");
+    }
     $csr->loadCSR($csr->saveCSR($csr->signCSR(Constants::CERT_SIGNATURE_ALGORITHM)));
     $csr->setExtension('id-ce-keyUsage', array('cRLSign'));
 
     $csrData = $csr->signCSR(Constants::CERT_SIGNATURE_ALGORITHM);
+    if ($csrData === FALSE) {
+      throw new \RuntimeException("Failed to generate CRL CSR for $dn");
+    }
     return $csr->saveCSR($csrData);
   }
 
@@ -188,6 +204,10 @@ class CA {
     $x509->setEndDate(date('c', strtotime(Constants::APP_DURATION, Time::getTime())));
 
     $result = $x509->sign($issuer, $subject, Constants::CERT_SIGNATURE_ALGORITHM);
+    if ($result === FALSE) {
+      $subjectDn = $subject->getDN(\phpseclib\File\X509::DN_ASN1);
+      throw new \RuntimeException("Failed to sign CSR ($subjectDn)");
+    }
     return $x509->saveX509($result);
   }
 
