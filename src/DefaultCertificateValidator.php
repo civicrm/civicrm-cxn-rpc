@@ -39,7 +39,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
   /**
    * @var string
    *   The CA certificate (PEM-encoded).
-   *   Use DefaultCertificateValidator::AUTOLOAD to use the bundled CiviRootCA.
+   *   Use DefaultCertificateValidator::AUTOLOAD to use the bundled CiviConnectCA.
    */
   protected $caCert;
 
@@ -182,7 +182,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
     if ($this->crlUrl === self::AUTOLOAD) {
       $this->crlUrl = NULL; // Default if we can't find something else.
       $caCertObj = X509Util::loadCACert($this->getCaCert());
-      // There can be multiple DPs, but in practice CiviRootCA only has one.
+      // There can be multiple DPs, but in practice CiviConnectCA only has one.
       $crlDPs = $caCertObj->getExtension('id-ce-cRLDistributionPoints');
       if (is_array($crlDPs)) {
         foreach ($crlDPs as $crlDP) {
