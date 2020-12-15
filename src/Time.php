@@ -31,6 +31,15 @@ class Time {
   }
 
   /**
+   * @return int
+   */
+  public static function getTimeObject() {
+    $time = new \DateTime();
+    $time->setTimestamp(self::getTime());
+    return $time;
+  }
+
+  /**
    * Set the given time.
    *
    * @param string $newDateTime

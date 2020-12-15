@@ -13,7 +13,7 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\InvalidCertException;
 
-class CATest extends \PHPUnit_Framework_TestCase {
+class CATest extends \PHPUnit\Framework\TestCase {
 
   public function testCRL_SignedByCA() {
     // create CA
@@ -23,7 +23,7 @@ class CATest extends \PHPUnit_Framework_TestCase {
 
     // create CRL
     $caCertObj = X509Util::loadCert($caCertPem, $caKeyPairPems);
-    $crlObj = new \File_X509();
+    $crlObj = new \phpseclib\File\X509();
     $crlObj->setSerialNumber(1, 10);
     $crlObj->setEndDate('+2 days');
     $crlPem = $crlObj->saveCRL($crlObj->signCRL($caCertObj, $crlObj));
@@ -53,7 +53,7 @@ class CATest extends \PHPUnit_Framework_TestCase {
     $crlDistCertObj = X509Util::loadCert($crlDistCertPem, $crlDistKeyPairPems, $caCertPem);
     $this->assertNotEmpty($crlDistCertObj);
 
-    $crlObj = new \File_X509();
+    $crlObj = new \phpseclib\File\X509();
     $crlObj->setSerialNumber(1, 10);
     $crlObj->setEndDate('+2 days');
     $crlPem = $crlObj->saveCRL($crlObj->signCRL($crlDistCertObj, $crlObj));
@@ -109,7 +109,7 @@ class CATest extends \PHPUnit_Framework_TestCase {
     $crlDistCertObj = X509Util::loadCert($crlDistCertPem, $crlDistKeyPairPems, $caCertPem);
     $this->assertNotEmpty($crlDistCertObj);
 
-    $crlObj = new \File_X509();
+    $crlObj = new \phpseclib\File\X509();
     $crlObj->setSerialNumber(1, 10);
     $crlObj->setEndDate('+2 days');
     $crlPem = $crlObj->saveCRL($crlObj->signCRL($crlDistCertObj, $crlObj));
@@ -154,7 +154,7 @@ class CATest extends \PHPUnit_Framework_TestCase {
     $crlDistCertObj = X509Util::loadCert($crlDistCertPem, $crlDistKeyPairPems, $caCertPem);
     $this->assertNotEmpty($crlDistCertObj);
 
-    $crlObj = new \File_X509();
+    $crlObj = new \phpseclib\File\X509();
     $crlObj->setSerialNumber(1, 10);
     $crlObj->setEndDate('+2 days');
     $crlPem = $crlObj->saveCRL($crlObj->signCRL($crlDistCertObj, $crlObj));

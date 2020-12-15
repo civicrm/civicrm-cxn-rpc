@@ -30,11 +30,11 @@ class Constants {
    */
   const APP_ID_CHARS = 16;
 
-  const RSA_ENC_MODE = CRYPT_RSA_ENCRYPTION_OAEP;
+  const RSA_ENC_MODE = \phpseclib\Crypt\RSA::ENCRYPTION_OAEP;
 
   const RSA_HASH = 'sha256';
 
-  const RSA_SIG_MODE = CRYPT_RSA_SIGNATURE_PSS;
+  const RSA_SIG_MODE = \phpseclib\Crypt\RSA::SIGNATURE_PSS;
 
   const RSA_KEYLEN = 2048;
 

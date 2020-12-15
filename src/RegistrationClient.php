@@ -187,7 +187,7 @@ class RegistrationClient extends Agent {
    * @throws Exception\InvalidMessageException
    */
   protected function doCall($appMeta, $entity, $action, $params, $cxn) {
-    $appCert = new \File_X509();
+    $appCert = new \phpseclib\File\X509();
     $appCert->loadX509($appMeta['appCert']);
 
     $req = new RegistrationMessage($cxn['appId'], $appCert->getPublicKey(), array(

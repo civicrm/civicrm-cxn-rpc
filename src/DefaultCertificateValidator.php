@@ -106,17 +106,17 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
   protected static function validate($certPem, $caCertPem, $crlPem = NULL, $crlDistCertPem = NULL) {
     $caCertObj = X509Util::loadCACert($caCertPem);
 
-    $certObj = new \File_X509();
+    $certObj = new \phpseclib\File\X509();
     $certObj->loadCA($caCertPem);
 
     if ($crlPem !== NULL) {
-      $crlObj = new \File_X509();
+      $crlObj = new \phpseclib\File\X509();
       if ($crlDistCertPem) {
         $crlDistCertObj = X509Util::loadCrlDistCert($crlDistCertPem, NULL, $caCertPem);
-        if ($crlDistCertObj->getSubjectDN(FILE_X509_DN_STRING) !== $caCertObj->getSubjectDN(FILE_X509_DN_STRING)) {
+        if ($crlDistCertObj->getSubjectDN(\phpseclib\File\X509::DN_STRING) !== $caCertObj->getSubjectDN(\phpseclib\File\X509::DN_STRING)) {
           throw new InvalidCertException(sprintf("CRL distributor (%s) does not act on behalf of this CA (%s)",
-            $crlDistCertObj->getSubjectDN(FILE_X509_DN_STRING),
-            $caCertObj->getSubjectDN(FILE_X509_DN_STRING)
+            $crlDistCertObj->getSubjectDN(\phpseclib\File\X509::DN_STRING),
+            $caCertObj->getSubjectDN(\phpseclib\File\X509::DN_STRING)
             ));
         }
         try {
@@ -151,7 +151,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
     if (!$certObj->validateSignature()) {
       throw new InvalidCertException("Identity is invalid. Certificate is not signed by proper CA.");
     }
-    if (!$certObj->validateDate(Time::getTime())) {
+    if (!$certObj->validateDate(Time::getTimeObject())) {
       throw new ExpiredCertException("Identity is invalid. Certificate expired.");
     }
   }
