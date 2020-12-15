@@ -72,7 +72,7 @@ class Constants {
    *   live CiviCRM Certificate Authority.
    */
   public static function getCert() {
-    return dirname(__DIR__) . '/certs/CiviRootCA.crt';
+    return dirname(__DIR__) . '/certs/CiviConnectRootCA.crt';
   }
 
   /**
@@ -82,6 +82,15 @@ class Constants {
    */
   public static function getTestCert() {
     return dirname(__DIR__) . '/certs/CiviTestRootCA.crt';
+  }
+
+  /**
+   * @return string
+   *   The path to the PEM-encode X.509 certificate of the
+   *   live CiviCRM Certificate Authority.
+   */
+  public static function getOldCert() {
+    return dirname(__DIR__) . '/certs/CiviRootCA.crt';
   }
 
 }
