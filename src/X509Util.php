@@ -11,10 +11,10 @@
 
 namespace Civi\Cxn\Rpc;
 
-use Civi\Cxn\Rpc\Exception\ExpiredCertException;
 use Civi\Cxn\Rpc\Exception\InvalidCertException;
 
 class X509Util {
+
   /**
    * @param string $certPem
    * @param array $keyPairPems

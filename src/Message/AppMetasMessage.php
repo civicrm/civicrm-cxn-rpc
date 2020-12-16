@@ -11,12 +11,8 @@
 
 namespace Civi\Cxn\Rpc\Message;
 
-use Civi\Cxn\Rpc\BinHex;
-use Civi\Cxn\Rpc\CA;
-use Civi\Cxn\Rpc\CertificateValidatorInterface;
 use Civi\Cxn\Rpc\Exception\CxnException;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
-use Civi\Cxn\Rpc\AppStore\AppStoreInterface;
 use Civi\Cxn\Rpc\Message;
 use Civi\Cxn\Rpc\UserError;
 use Civi\Cxn\Rpc\Constants;
@@ -62,7 +58,7 @@ class AppMetasMessage extends Message {
   }
 
   /**
-   * @param CertificateValidatorInterface|NULL $certValidator
+   * @param \Civi\Cxn\Rpc\CertificateValidatorInterface|NULL $certValidator
    * @param string $blob
    * @return AppMetasMessage
    *   Validated message.

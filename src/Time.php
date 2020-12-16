@@ -14,7 +14,7 @@ namespace Civi\Cxn\Rpc;
 class Time {
 
   /**
-   * @var int, the seconds offset from the real world time
+   * @var intthesecondsoffsetfromtherealworldtime
    */
   static private $_delta = 0;
 

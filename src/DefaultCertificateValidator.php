@@ -13,7 +13,6 @@ namespace Civi\Cxn\Rpc;
 
 use Civi\Cxn\Rpc\Exception\ExpiredCertException;
 use Civi\Cxn\Rpc\Exception\InvalidCertException;
-use Civi\Cxn\Rpc\Http\HttpInterface;
 use Civi\Cxn\Rpc\Http\PhpHttp;
 
 /**
@@ -65,7 +64,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
   protected $crlDistCert;
 
   /**
-   * @var HttpInterface|string
+   * @var \Civi\Cxn\Rpc\Http\HttpInterface|string
    *   The service to use when autoloading data.
    *   Use DefaultCertificateValidator::AUTOLOAD to download via HTTP.
    */
@@ -75,7 +74,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
    * @param string $caCertPem
    * @param string $crlDistCertPem
    * @param string $crlPem
-   * @param HttpInterface|string $http
+   * @param \Civi\Cxn\Rpc\Http\HttpInterface|string $http
    */
   public function __construct(
     $caCertPem = DefaultCertificateValidator::AUTOLOAD,
@@ -180,7 +179,8 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
    */
   public function getCrlUrl() {
     if ($this->crlUrl === self::AUTOLOAD) {
-      $this->crlUrl = NULL; // Default if we can't find something else.
+      // Default if we can't find something else.
+      $this->crlUrl = NULL;
       $caCertObj = X509Util::loadCACert($this->getCaCert());
       // There can be multiple DPs, but in practice CiviConnectCA only has one.
       $crlDPs = $caCertObj->getExtension('id-ce-cRLDistributionPoints');
@@ -266,7 +266,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
   }
 
   /**
-   * @return HttpInterface
+   * @return \Civi\Cxn\Rpc\Http\HttpInterface
    */
   public function getHttp() {
     if ($this->http === self::AUTOLOAD) {
@@ -276,7 +276,7 @@ class DefaultCertificateValidator implements CertificateValidatorInterface {
   }
 
   /**
-   * @param HttpInterface $http
+   * @param \Civi\Cxn\Rpc\Http\HttpInterface $http
    * @return $this
    */
   public function setHttp($http) {

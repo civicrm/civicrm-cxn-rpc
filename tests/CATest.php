@@ -66,7 +66,8 @@ class CATest extends \PHPUnit\Framework\TestCase {
 
     // validate cert - OK
     $certValidator = new DefaultCertificateValidator($caCertPem, $crlDistCertPem, $crlPem);
-    $certValidator->validateCert($appCertPem); // throws exception if invalid
+    // throws exception if invalid
+    $certValidator->validateCert($appCertPem);
 
     // revoke cert
     $crlObj->setRevokedCertificateExtension(4321, 'id-ce-cRLReasons', 'privilegeWithdrawn');

@@ -12,6 +12,7 @@
 namespace Civi\Cxn\Rpc;
 
 class KeyPair {
+
   /**
    * @return array
    *   Array with elements:

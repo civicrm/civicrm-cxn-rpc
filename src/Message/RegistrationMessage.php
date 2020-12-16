@@ -13,7 +13,6 @@ namespace Civi\Cxn\Rpc\Message;
 
 use Civi\Cxn\Rpc\AesHelper;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
-use Civi\Cxn\Rpc\AppStore\AppStoreInterface;
 use Civi\Cxn\Rpc\Message;
 use Civi\Cxn\Rpc\UserError;
 use Civi\Cxn\Rpc\Constants;
@@ -65,13 +64,14 @@ class RegistrationMessage extends Message {
 
     return self::NAME
     . Constants::PROTOCOL_DELIM . $this->appId
-    . Constants::PROTOCOL_DELIM . base64_encode($rsaCiphertext) // escape PROTOCOL_DELIM
+    // escape PROTOCOL_DELIM
+    . Constants::PROTOCOL_DELIM . base64_encode($rsaCiphertext)
     . Constants::PROTOCOL_DELIM . $signature
     . Constants::PROTOCOL_DELIM . $body;
   }
 
   /**
-   * @param AppStoreInterface $appStore
+   * @param \Civi\Cxn\Rpc\AppStore\AppStoreInterface $appStore
    * @param string $blob
    * @return array
    *   Decoded data.

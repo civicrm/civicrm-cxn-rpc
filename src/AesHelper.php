@@ -14,6 +14,7 @@ namespace Civi\Cxn\Rpc;
 use Civi\Cxn\Rpc\Exception\InvalidMessageException;
 
 class AesHelper {
+
   /**
    * @return string
    *   A secret, expressed in a series of printable ASCII characters.

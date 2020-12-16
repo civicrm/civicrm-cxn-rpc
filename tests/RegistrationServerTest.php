@@ -15,7 +15,6 @@ use Civi\Cxn\Rpc\CxnStore\ArrayCxnStore;
 use Civi\Cxn\Rpc\Message\InsecureMessage;
 use Civi\Cxn\Rpc\Message\RegistrationMessage;
 use Civi\Cxn\Rpc\Message\StdMessage;
-use Psr\Log\NullLogger;
 
 class RegistrationServerTest extends \PHPUnit\Framework\TestCase {
 
@@ -28,12 +27,15 @@ class RegistrationServerTest extends \PHPUnit\Framework\TestCase {
       array($appKeyPair, new InsecureMessage(array('sldjkfasdf'))),
       array($appKeyPair, new InsecureMessage(array('cxn' => array('abcd')))),
       array($appKeyPair, new StdMessage(Cxn::createId(), AesHelper::createSecret(), array('whatever'))),
-      array($appKeyPair, new RegistrationMessage('app:org.civicrm.other', $appKeyPair['publickey'], array('whatever'))), // wrong appid
-      array($appKeyPair, new RegistrationMessage(self::APP_ID, $otherKeyPair['publickey'], array('whatever'))), // wrong key
+    // wrong appid
+      array($appKeyPair, new RegistrationMessage('app:org.civicrm.other', $appKeyPair['publickey'], array('whatever'))),
+    // wrong key
+      array($appKeyPair, new RegistrationMessage(self::APP_ID, $otherKeyPair['publickey'], array('whatever'))),
     );
   }
 
   /**
+   * @param array $appKeyPair
    * @param Message $invalidInput
    * @throws Exception\InvalidMessageException
    * @dataProvider invalidInputExamples
